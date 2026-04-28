@@ -656,3 +656,80 @@ Skill templates SHALL be sourced from the canonical `skills/typspec/`
     then: [`metadata.generatedBy` matches the CLI version, not hardcoded],
   )
 ]
+#requirement("cmd-usage", priority: "shall")[
+The CLI SHALL provide a hidden `usage` subcommand that outputs a
+  `.usage.kdl` format spec describing the full CLI.
+
+  The spec SHALL include:
+  - All commands, flags, and positional args
+  - `complete` directives for dynamic value completion on `status`,
+    `archive`, and `which` arguments
+  - Hidden flags (`hide=#true`) for `--complete` on `list`
+
+  #scenario("usage outputs valid KDL",
+    when: [`typspec usage`],
+    then: [output is valid usage KDL spec, parsable by `usage lint`],
+  )
+
+  #scenario("usage spec includes complete directives",
+    when: [`typspec usage`],
+    then: [spec contains `complete` for status/archive/which name args],
+  )
+]
+#requirement("cmd-completion", priority: "shall")[
+The CLI SHALL provide a `completion <shell>` subcommand that outputs a
+  shell completion script for the given shell.
+
+  The generated script SHALL:
+  - Error with clear message if `usage` CLI is not installed
+  - Cache the spec from `typspec usage` in `$TMPDIR`
+  - Call `usage complete-word` to generate completions
+  - Match mise's generated completion script structure exactly
+
+  #scenario("completion zsh outputs valid script",
+    when: [`typspec completion zsh > _typspec`],
+    then: [script contains `#compdef typspec` and calls `usage complete-word`],
+  )
+
+  #scenario("completion errors without usage",
+    when: [`usage` CLI is not installed, user sources completion script],
+    then: [script prints error message instructing to install usage],
+  )
+]
+#requirement("cmd-list-complete", priority: "shall")[
+The `list` command SHALL support a hidden `--complete` flag that
+  outputs bare names (one per line) for use by `usage`'s `complete`
+  directive.
+
+  Output SHALL follow this order:
+  - `typspec list --complete` — change names only
+  - `typspec list --specs --complete` — spec names only
+  - `typspec list --all --complete` — specs first, then changes, then
+    archive names (with date prefixes stripped)
+
+  #scenario("list --complete outputs change names",
+    when: [`typspec list --complete`],
+    then: [one change name per line, no paths or descriptions],
+  )
+
+  #scenario("list --specs --complete outputs spec names",
+    when: [`typspec list --specs --complete`],
+    then: [one spec name per line],
+  )
+
+  #scenario("list --all --complete includes archive names",
+    given: [archived change `2026-04-28-old-feature.typ` exists],
+    when: [`typspec list --all --complete`],
+    then: [output includes `old-feature` (date prefix stripped)],
+  )
+]
+#requirement("usage-as-runtime-dep", priority: "shall")[
+The completion scripts SHALL depend on the `usage` CLI being installed.
+  If `usage` is not found, the completion script SHALL print an error
+  and exit cleanly.
+
+  #scenario("missing usage shows helpful error",
+    when: [completion script runs without `usage` installed],
+    then: [message: "Error: usage CLI not found. See https://usage.jdx.dev"],
+  )
+]
