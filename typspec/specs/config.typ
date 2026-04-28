@@ -27,71 +27,24 @@ This document specifies the schema and semantics of typspec config files.
 == Discovery
 
 #requirement("config-discovery", priority: "shall")[
-  The CLI SHALL discover config files by walking up from the current working directory to the filesystem root. At each directory, paths are checked in order.
+The CLI SHALL discover config files by walking up from the current
+  working directory.
 
-  ```
-  # Project-local configs
-  <dir>/typspec.json(c)
-  <dir>/typspec/config.json(c)
-  <dir>/.config/typspec.json(c)
-  <dir>/.config/typspec/typspec.json(c)
+  The `$schema` field in the generated config SHALL point to the raw
+  GitHub URL of the schema file, not a typspec.dev domain.
 
-  # Local overrides (git-ignored)
-  <dir>/typspec.local.json(c)
-  <dir>/typspec/config.local.json(c)
-  <dir>/.config/typspec.local.json(c)
-  <dir>/.config/typspec/typspec.local.json(c)
-
-  # Environment-specific (when TYPSPEC_ENV is set)
-  <dir>/typspec.<env>.json(c)
-
-  # User global (lowest precedence)
-  ~/.config/typspec/config.json(c)
-  ```
-
-  Configs found in child directories override those in parent directories. The global user config serves as the lowest-precedence base.
-
-  #scenario("discovery walks up",
-    given: [current dir is `~/repo/packages/logger/src`, `~/repo/typspec.jsonc` exists],
-    when: [CLI runs],
-    then: [`~/repo/typspec.jsonc` used as project config],
-  )
-
-  #scenario("child overrides parent",
-    given: [`~/repo/typspec.jsonc` has `name: "repo"`, `~/repo/packages/logger/typspec/config.jsonc` has `name: "logger"`],
-    when: [CLI runs in `~/repo/packages/logger`],
-    then: [`project.name` is `"logger"`],
-  )
-
-  #scenario("no config found",
-    given: [no typspec config exists in any parent],
-    when: [project command runs],
-    then: [CLI errors suggesting `typspec init`],
-  )
-
-  #scenario("TYPSPEC_CONFIG override",
-    given: [`$TYPSPEC_CONFIG` set to `/custom/path/typspec.json`],
-    when: [CLI runs],
-    then: [only that path loaded, no directory walk],
+  #scenario("init writes correct schema URL",
+    when: [`typspec init` runs],
+    then: [`$schema` in typspec.jsonc is the raw GitHub URL],
   )
 ]
 
 == Schema: project
 
 #requirement("schema-project", priority: "shall")[
-  The `project` section SHALL define the identity of the current package.
-
-  ```
-  { "project": { "name": "std/http", "version": "0.1.0" } }
-  ```
-
-  - `name` (string, required) — dotted identifier for this package.
-  - `version` (string, optional) — package version.
-
-  #scenario("project name is required",
-    when: [`project.name` is missing],
-    then: [validation fails with clear error],
-  )
+The `project` section SHALL define the identity of the current
+  package. The JSON Schema description for each field SHALL come
+  from doc comments on the Rust struct.
 ]
 
 == Schema: workspaces
