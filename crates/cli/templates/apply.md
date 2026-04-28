@@ -11,37 +11,63 @@ compatibility: Requires typspec CLI.
 
 # typspec-apply
 
-Implement tasks from an active change document.
+Implement tasks from a change document. Works through the task list, writing
+code and checking off items.
 
-## Workflow
+---
 
-```mermaid
-flowchart LR
-    A[Select change] --> B[typspec status &lt;name&gt;]
-    B --> C[Identify incomplete tasks]
-    C --> D[Implement task]
-    D --> E{More tasks?}
-    E -- Yes --> C
-    E -- No --> F[Done]
-```
+**Input**: The argument after `/typspec-apply` is the change name. If not provided, infer from context.
 
-## Steps
+**Steps**
 
-1. **Identify which change to apply** — if not specified, list active changes:
+1. **Identify the change to implement**
    ```
    typspec list
    ```
-2. **Check the status** to see incomplete tasks:
+   If no change specified and multiple exist, ask which one.
+
+2. **Read the change document**
+   ```
+   typspec status <name> --json
+   ```
+   This gives you requirements, scenarios, decisions, and tasks with
+   completion status. Also read the full file at `typspec/changes/<name>.typ`.
+
+3. **Understand what needs to be done**
+   - Check the proposal for motivation and scope
+   - Read the design decisions for rationale
+   - Check the spec-deltas for what requirements are being added/modified/removed
+   - Task `done: false` items are what needs implementing
+
+4. **Work through tasks one by one**
+
+   Use the **TodoWrite tool** to track progress through the tasks.
+
+   For each task:
+   - Read any context needed (existing code, specs, etc.)
+   - Implement the required changes
+   - Mark the task as `done: true` in the change file
+
+5. **Verify after each task**
+   ```
+   typspec validate typspec/changes/<name>.typ
+   ```
+   Also run any relevant project tests (the same way the project tests are
+   normally run — cargo test, go test, npm test, etc.)
+
+6. **Check final status**
    ```
    typspec status <name>
    ```
-3. **Read the change document** at `typspec/changes/<name>.typ` for full context:
-   - Proposal — why this change exists
-   - Design — decisions and rationale
-   - Spec-deltas — what requirements are changing
-   - Tasks — what needs to be done
-4. **Implement tasks one by one.** After each:
-   - Mark the task `done: true` in the change file
-   - Run `typspec validate typspec/changes/<name>.typ` to verify
-5. **When all tasks are done**, prompt:
-   - "All tasks complete. Run `/typspec-archive <name>` to archive."
+
+**Output**
+
+When all tasks are complete:
+- "All tasks complete. Run `/typspec-archive <name>` to archive."
+- Or if some tasks remain: "X/Y tasks complete. Continue with `/typspec-apply`."
+
+**Resuming**
+
+Can resume where you left off if interrupted — task completion is tracked
+in the `.typ` file's `done:` field. Just re-run `typspec status <name>` to
+see what's left.

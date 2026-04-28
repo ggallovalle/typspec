@@ -11,32 +11,90 @@ compatibility: Requires typspec CLI.
 
 # typspec-propose
 
-Create a new change — propose, design, and plan in one step.
+Propose a new change — create a change document with all artifacts in one step.
 
-## Workflow
+I'll create a change with all sections:
+- Proposal (why & what)
+- Design decisions (how)
+- Spec-deltas (requirements with scenarios)
+- Tasks (implementation checklist)
 
-```mermaid
-flowchart LR
-    A[User describes idea] --> B[typspec new change &lt;name&gt;]
-    B --> C[Write proposal, design, tasks]
-    C --> D[Ready for typspec-apply]
-```
+When ready to implement, run `/typspec-apply`.
 
-## Steps
+---
 
-1. **Understand what they want to build.** Ask clarifying questions if needed.
-2. **Create the change:**
+**Input**: The argument after `/typspec-propose` is the change name OR a description of what the user wants to build.
+
+**Steps**
+
+1. **If no clear input provided, ask what they want to build**
+
+   Use the **AskUserQuestion tool** to ask:
+   > "What change do you want to work on? Describe what you want to build or fix."
+
+   From their description, derive a kebab-case name (e.g., "add dark mode" → `add-dark-mode`).
+
+   **Do NOT proceed without understanding what the user wants to build.**
+
+2. **Create the change file**
    ```
-   typspec new change <kebab-case-name>
+   typspec new change <name>
    ```
-3. **Fill the change document** at `typspec/changes/<name>.typ`:
-   - Write the proposal (motivation, scope)
-   - Capture design decisions
-   - Add spec-deltas (requirements with `action:`)
-   - List implementation tasks
-4. **Verify it compiles:**
+   This creates a scaffolded `.typ` file at `typspec/changes/<name>.typ`.
+
+3. **Read existing specs for context**
+   ```
+   typspec list --specs
+   typspec status <spec-name> --json
+   ```
+   Understand what specs exist and what requirements they contain.
+
+4. **Fill the change document**
+
+   The change document is a single `.typ` file. Fill in these sections:
+
+   **Proposal section:**
+   - Motivation — why this change is needed
+   - Scope — what's in and out of scope
+
+   **Design section:**
+   - Use `#decision("Title", rationale: [...], alternatives: [...])` blocks
+   - Each decision captures the choice, the reasoning, and what was rejected
+
+   **Spec-deltas section:**
+   - `#requirement("id", action: "added")[body #scenario(...)]` for new requirements
+   - `#requirement("id", action: "modified")[body]` for changed requirements
+   - `#requirement("id", action: "removed")[body]` for removed requirements
+   - Each requirement includes `#scenario("name", when: [...], then: [...])` blocks
+   - If the change modifies multiple specs, add `modifies: "spec-name"` to each requirement
+
+   **Tasks section:**
+   - `#task_group("Group Name", (task([Description], done: false), ...))`
+   - Add `assignee: "ai"` or `assignee: "human"` for responsibility
+   - Add `labels: ("label",)` for filtering
+   - Add `refs: ("url",)` for external references
+
+5. **Set the change's `modifies`**
+   - At the top: `#show: change.with(id: "<name>", modifies: ("spec-a", "spec-b"))`
+   - Lists which specs this change modifies
+
+6. **Verify it compiles**
    ```
    typspec validate typspec/changes/<name>.typ
    ```
-5. **Show a summary** of what was created and prompt:
-   - "Ready to implement. Run `/typspec-apply` or `typspec status <name>`"
+
+7. **Show a summary**
+
+   After completing, summarize:
+   - Change name and location
+   - Count of requirements, scenarios, decisions, tasks
+   - "Ready for implementation. Run `/typspec-apply` or ask me to implement."
+
+**Guardrails**
+
+- Create ALL sections of the change document — not just the proposal
+- If the change modifies multiple specs, each requirement MUST have `modifies:` set
+- If context is critically unclear, ask the user
+- If a change with that name already exists, ask if user wants to continue it or create a new one
+- Always verify the file compiles after writing
+- Use `typspec list` to check active changes before creating

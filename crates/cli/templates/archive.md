@@ -11,38 +11,74 @@ compatibility: Requires typspec CLI.
 
 # typspec-archive
 
-Archive a completed change. Merges spec-deltas into target specs, then
-moves the change file to the archive directory.
+Archive a completed change. Merges spec-deltas into target specs via AST
+surgery, then moves the change file to the archive directory.
 
-## Workflow
+---
 
-```mermaid
-flowchart LR
-    A[Verify tasks done] --> B[typspec archive &lt;name&gt;]
-    B --> C[Deltas merged into specs]
-    C --> D[Change moved to archive]
-    D --> E[Done]
-```
+**Input**: The argument after `/typspec-archive` is the change name. If not
+provided, infer from context.
 
-## Steps
+**Steps**
 
-1. **Verify all tasks are complete:**
+1. **Verify all tasks are complete**
    ```
    typspec status <name>
    ```
-2. **Run the archive command:**
+   If tasks remain incomplete, warn the user but offer to proceed anyway.
+
+2. **Read the change document** for full context
+   - What specs does it modify? (check the `modifies` list)
+   - What requirements are being added/modified/removed? (check `action:` fields)
+   - Are there any design decisions worth noting?
+
+3. **Run the archive command**
    ```
    typspec archive <name>
    ```
    This:
-   - Queries the change file for spec-deltas
-   - Merges ADDED/MODIFIED/REMOVED requirements into target specs
-   - Moves the change file to `typspec/archive/`
-3. **Verify specs still compile:**
+   - Compiles the change file
+   - Queries for `typspec:requirement` metadata with `action` set
+   - Extracts full requirement bodies from the change file source
+   - Applies ADDED/MODIFIED/REMOVED deltas to target spec files via AST surgery
+   - Checks for git conflicts (spec files with uncommitted changes)
+   - Moves the change file to `typspec/archive/YYYY-MM-DD-<name>.typ`
+
+4. **Verify specs still compile**
    ```
    typspec validate typspec/specs/<spec>.typ
    ```
-4. **Commit the changes** (spec files + archive):
+   For each spec that was modified.
+
+5. **Commit the changes**
    ```
-   git add -A && git commit -m "feat: &lt;change description&gt;"
+   git add -A && git commit -m "feat: implemented <change>"
    ```
+
+**What happens during archive**
+
+```
+                         ┌─────────────────────┐
+                         │   change.typ file    │
+                         │  (proposal, design,  │
+                         │   deltas, tasks)     │
+                         └──────────┬──────────┘
+                                    │
+                         typspec archive
+                                    │
+                    ┌───────────────┼───────────────┐
+                    │               │               │
+                    ▼               ▼               ▼
+          ┌─────────────────┐ ┌─────────┐ ┌──────────────┐
+          │ Spec files      │ │ Archive │ │ Git          │
+          │ updated via AST │ │ moved   │ │ conflict     │
+          │ surgery         │ │ to      │ │ check        │
+          └─────────────────┘ └─────────┘ └──────────────┘
+```
+
+**Guardrails**
+
+- Run `typspec status <name>` first to check task completion
+- If spec files have uncommitted changes, archive will warn but proceed
+- Archived changes are preserved for history
+- Use `typspec status <name>` on archived changes to still see their metadata
