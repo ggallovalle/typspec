@@ -221,8 +221,8 @@ What is and isn't changing.
 
 = Tasks
 
-#task-group("Implementation", (
-  task[Do the thing](done: false),
+#task_group("Implementation", (
+  task([Do the thing], done: false),
 ))
 "#, name
     );
@@ -388,7 +388,7 @@ fn find_latest_typ_file() -> PathBuf {
     })
 }
 
-fn cmd_archive(name: &str, _yes: bool, _json: bool) {
+fn cmd_archive(name: &str, _yes: bool, json: bool) {
     let change_path = PathBuf::from("typspec/changes").join(format!("{}.typ", name));
 
     if !change_path.exists() {
@@ -396,6 +396,76 @@ fn cmd_archive(name: &str, _yes: bool, _json: bool) {
         std::process::exit(1);
     }
 
+    // Query the change file for metadata
+    let output = std::process::Command::new("typst")
+        .args(["query", "--root", ".", &change_path.to_string_lossy(), "metadata", "--field", "value"])
+        .output()
+        .expect("failed to run typst query");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        eprintln!("error: typst query failed: {}", stderr);
+        std::process::exit(1);
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let entries: Vec<serde_json::Value> = serde_json::from_str(&stdout).unwrap_or_default();
+
+    // Find the change metadata
+    let change_meta = entries.iter().find(|v| v["kind"] == "typspec:change");
+    let modifies = change_meta
+        .and_then(|m| m["modifies"].as_array())
+        .map(|a| a.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect::<Vec<_>>())
+        .unwrap_or_default();
+
+    // Find spec-delta requirements
+    let delta_ops = typspec_core::metadata_to_delta_ops(&entries);
+
+    // Map spec names to file paths
+    let spec_dir = PathBuf::from("typspec/specs");
+    let mut spec_deltas: std::collections::HashMap<String, Vec<typspec_core::surgery::DeltaOp>> = std::collections::HashMap::new();
+
+    // Group ops by spec (for now, all ops go to first spec in modifies)
+    if !delta_ops.is_empty() && !modifies.is_empty() {
+        let first_spec = format!("{}.typ", modifies[0]);
+        let spec_path = spec_dir.join(&first_spec);
+        if spec_path.exists() {
+            spec_deltas.insert(spec_path.to_string_lossy().to_string(), delta_ops);
+        }
+    }
+
+    // Apply deltas
+    if !spec_deltas.is_empty() {
+        if json {
+            println!(r#"{{"applying_deltas": {}}}"#, serde_json::to_string(&modifies).unwrap());
+        } else {
+            println!("Applying spec-deltas to: {:?}", modifies);
+        }
+
+        match typspec_core::apply_spec_deltas(&spec_deltas) {
+            Ok(results) => {
+                let total_changes: usize = results.values().map(|r| r.changes).sum();
+                if total_changes > 0 {
+                    for (path, result) in &results {
+                        println!("  → {} ({} change(s))", path, result.changes);
+                    }
+                    typspec_core::write_results(&results).unwrap_or_else(|e| {
+                        eprintln!("error writing changes: {}", e);
+                    });
+                } else {
+                    println!("  (no matching requirements with action found)");
+                }
+            }
+            Err(e) => {
+                eprintln!("error applying deltas: {}", e);
+            }
+        }
+    } else if !modifies.is_empty() {
+        println!("Info: change modifies {:?} but no spec-deltas found", modifies);
+        println!("  (requirements must have `action:` set to be processed)");
+    }
+
+    // Move change to archive
     let archive_dir = PathBuf::from("typspec/archive");
     std::fs::create_dir_all(&archive_dir).expect("failed to create archive dir");
 
@@ -405,7 +475,11 @@ fn cmd_archive(name: &str, _yes: bool, _json: bool) {
 
     std::fs::rename(&change_path, &dest).expect("failed to archive change");
 
-    println!("✓ Archived {} → {}", name, dest.display());
+    if json {
+        println!(r#"{{"archived": "{}"}}"#, dest.display());
+    } else {
+        println!("✓ Archived {} → {}", name, dest.display());
+    }
 }
 
 fn cmd_validate(path: Option<&Path>) {

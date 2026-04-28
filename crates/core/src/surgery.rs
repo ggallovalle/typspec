@@ -35,11 +35,35 @@ pub fn apply_deltas(
         .map_err(|e| format!("cannot read {}: {}", source_path.display(), e))?;
 
     let root = typst_syntax::parse(&text);
-    let (modified, changes) = apply_ops(&root, operations);
+
+    // Split into "added" ops vs modify/remove ops
+    let added_ops: Vec<&DeltaOp> = operations.iter().filter(|op| op.action == DeltaAction::Added).collect();
+    let mod_ops: Vec<DeltaOp> = operations.iter()
+        .filter(|op| op.action != DeltaAction::Added)
+        .cloned()
+        .collect();
+
+    // Apply modify/remove operations first (tree walk)
+    let (mut tree, changes) = apply_ops(&root, &mod_ops);
+
+    // Apply "added" operations — append new content to the root
+    let mut added_count = 0usize;
+    for op in &added_ops {
+        if let Some(content) = &op.content {
+            let parsed = typst_syntax::parse(content);
+            // Append parsed content to root's children
+            let mut children: Vec<SyntaxNode> = tree.children().cloned().collect();
+            for child in parsed.children() {
+                children.push(child.clone());
+            }
+            tree = SyntaxNode::inner(SyntaxKind::Markup, children);
+            added_count += 1;
+        }
+    }
 
     Ok(SurgeryResult {
-        source: modified.into_text().to_string(),
-        changes,
+        source: tree.into_text().to_string(),
+        changes: changes + added_count,
     })
 }
 

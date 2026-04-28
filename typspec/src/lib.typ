@@ -85,7 +85,7 @@
   linebreak()
 }
 
-#let task-group(name, tasks) = {
+#let task_group(name, tasks) = {
   metadata((kind: "typspec:task-group", name: name))
   heading(level: 2, name)
   tasks.join([])
