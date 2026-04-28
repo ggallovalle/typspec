@@ -1,4 +1,6 @@
-#set document(title: "Typspec CLI", author: "Gerson Gallo")
+#import "../src/lib.typ": spec, requirement, scenario, decision
+
+#show: spec.with(title: "Typspec CLI")
 
 = Typspec CLI Specification
 

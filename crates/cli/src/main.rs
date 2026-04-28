@@ -285,7 +285,7 @@ fn cmd_status(name: &str, json: bool) {
     };
 
     let output = std::process::Command::new("typst")
-        .args(["query", &target.to_string_lossy(), "metadata", "--field", "value"])
+        .args(["query", "--root", ".", &target.to_string_lossy(), "metadata", "--field", "value"])
         .output()
         .expect("failed to run typst query");
 
@@ -345,7 +345,7 @@ fn cmd_render(path: Option<&Path>, watch: bool) {
     let output = target.with_extension("pdf");
 
     let mut cmd = std::process::Command::new("typst");
-    cmd.args(["compile", &target.to_string_lossy(), &output.to_string_lossy()]);
+    cmd.args(["compile", "--root", ".", &target.to_string_lossy(), &output.to_string_lossy()]);
     if watch {
         cmd.arg("--watch");
     }
@@ -412,7 +412,7 @@ fn cmd_validate(path: Option<&Path>) {
     let target = path.unwrap_or_else(|| Path::new("."));
 
     let status = std::process::Command::new("typst")
-        .args(["compile", &target.to_string_lossy()])
+        .args(["compile", "--root", ".", &target.to_string_lossy()])
         .arg("--format=pdf")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())

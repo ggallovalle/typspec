@@ -1,4 +1,6 @@
-#set document(title: "Typspec Config Schema", author: "Gerson Gallo")
+#import "../src/lib.typ": spec, requirement, scenario, decision
+
+#show: spec.with(title: "Typspec Config Schema")
 
 = Typspec Config Schema Specification
 
