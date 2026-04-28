@@ -72,16 +72,12 @@ checked in order (first found in a directory wins):
 
 === Global and System Config
 
-Beyond project-local configs, the CLI SHALL also load:
+Beyond project-local configs, the CLI SHALL also load a user global config:
 
 ```
 # User global (lowest precedence)
 ~/.config/typspec/config.jsonc
 ~/.config/typspec/config.json
-
-# System-wide (lowest precedence)
-/etc/typspec/config.jsonc
-/etc/typspec/config.json
 ```
 
 The `$TYPSPEC_CONFIG` environment variable SHALL override the config discovery

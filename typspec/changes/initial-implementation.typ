@@ -55,8 +55,8 @@ The CLI SHALL walk up from the current directory, checking multiple path
 conventions (`typspec.jsonc`, `typspec/config.jsonc`, `.config/typspec.jsonc`,
 `.config/typspec/typspec.jsonc`) plus `.local.` overrides and
 `TYPSPEC_ENV`-specific variants. Both `.json` and `.jsonc` are accepted.
-Parent configs merge with child overrides. Global config at
-`~/.config/typspec/` and system config at `/etc/typspec/` serve as base.
+Parent configs merge with child overrides. User global config at
+`~/.config/typspec/` serves as base.
 
 Rationale: No root pollution. Users can nest the config wherever fits their
 project structure. Multiple packages in a monorepo each have their own config
