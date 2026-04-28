@@ -138,3 +138,18 @@ The README SHALL display crates.io, CI, and license badges.
 #requirement("readme-structure", priority: "shall")[
 The README SHALL include a repository structure diagram.
 ]
+#requirement("docs-installation", priority: "shall")[
+Documented in `docs.typ`.
+]
+#requirement("docs-getting-started", priority: "shall")[
+Documented in `docs.typ`.
+]
+#requirement("docs-concepts", priority: "shall")[
+Documented in `docs.typ`.
+]
+#requirement("docs-commands", priority: "shall")[
+Documented in `docs.typ`.
+]
+#requirement("docs-workflows", priority: "shall")[
+Documented in `docs.typ`.
+]
