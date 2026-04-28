@@ -210,31 +210,31 @@ Out of scope:
 = Tasks
 
 #task_group("1. Dependencies", (
-  task([Add `tera` and `serde` deps to CLI crate], done: false, labels: ("cli",)),
+  task([Add `tera` and `serde` deps to CLI crate], done: true, labels: ("cli",)),
 ))
 
 #task_group("2. Tool Registry", (
-  task([Define `Tool` enum with Claude, Codex, OpenCode variants + skills_dir() method], done: false, labels: ("cli",)),
-  task([Add `--tools` flag parser to Init command: parse comma-separated, validate, resolve "all"/"none"], done: false, labels: ("cli",)),
-  task([Add tool directory detection: check if target tool config dir exists in project], done: false, labels: ("cli",)),
+  task([Define `Tool` enum with Claude, Codex, OpenCode variants + skills_dir() method], done: true, labels: ("cli",)),
+  task([Add `--tools` flag parser to Init command: parse comma-separated, validate, resolve "all"/"none"], done: true, labels: ("cli",)),
+  task([Add tool directory detection: check if target tool config dir exists in project], done: true, labels: ("cli",)),
 ))
 
 #task_group("3. Tera Templates", (
-  task([Write typspec-propose template (Tera, embedded)], done: false, labels: ("cli",)),
-  task([Write typspec-explore template (Tera, embedded)], done: false, labels: ("cli",)),
-  task([Write typspec-apply template (Tera, embedded)], done: false, labels: ("cli",)),
-  task([Write typspec-archive template (Tera, embedded)], done: false, labels: ("cli",)),
-  task([Wire Tera engine + render function in CLI], done: false, labels: ("cli",)),
+  task([Write typspec-propose template (Tera, embedded)], done: true, labels: ("cli",)),
+  task([Write typspec-explore template (Tera, embedded)], done: true, labels: ("cli",)),
+  task([Write typspec-apply template (Tera, embedded)], done: true, labels: ("cli",)),
+  task([Write typspec-archive template (Tera, embedded)], done: true, labels: ("cli",)),
+  task([Wire Tera engine + render function in CLI], done: true, labels: ("cli",)),
 ))
 
 #task_group("4. Init Command", (
-  task([In `cmd_init`, handle `--tools` flag and generate skills for each selected tool], done: false, labels: ("cli",)),
-  task([Create skill directories and write SKILL.md files], done: false, labels: ("cli",)),
-  task([Print summary of generated skills on success], done: false, labels: ("cli",)),
+  task([In `cmd_init`, handle `--tools` flag and generate skills for each selected tool], done: true, labels: ("cli",)),
+  task([Create skill directories and write SKILL.md files], done: true, labels: ("cli",)),
+  task([Print summary of generated skills on success], done: true, labels: ("cli",)),
 ))
 
 #task_group("5. Self-test", (
-  task([Run `typspec init --tools codex` in a temp dir, verify skills generated], done: false, labels: ("tests",)),
-  task([Run `typspec init --tools none` — verify no skills dirs created], done: false, labels: ("tests",)),
-  task([Run `typspec init --tools invalid` — verify error + tool list], done: false, labels: ("tests",)),
+  task([Run `typspec init --tools codex` in a temp dir, verify skills generated], done: true, labels: ("tests",)),
+  task([Run `typspec init --tools none` — verify no skills dirs created], done: true, labels: ("tests",)),
+  task([Run `typspec init --tools invalid` — verify error + tool list], done: true, labels: ("tests",)),
 ))

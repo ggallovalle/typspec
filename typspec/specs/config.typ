@@ -214,3 +214,20 @@ The `typspec.jsonc` schema SHALL support a `paths` section with optional
     then: [defaults used: `typspec/specs/`, `typspec/changes/`, `typspec/archive/`],
   )
 ]
+#requirement("tool-directory-mapping", priority: "shall")[
+Each supported tool SHALL have a known skills directory path:
+
+  | Tool      | Skills dir                 | Reason                         |
+  |-----------|----------------------------|--------------------------------|
+  | `claude`  | `.claude/skills/`          | Claude Code convention         |
+  | `codex`   | `.agents/skills/`          | Standard AI skills directory   |
+  | `opencode`| `.agents/skills/`          | Standard AI skills directory   |
+
+  The mapping SHALL be defined in Rust code via a `Tool` enum and registry.
+  Adding a new tool only requires adding a new variant and its skills dir.
+
+  #scenario("new tool added",
+    when: [a contributor adds a new variant to the Tool enum],
+    then: [no other code changes needed — template rendering is generic],
+  )
+]
