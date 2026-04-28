@@ -4,9 +4,11 @@
 //! - Config parsing (`typspec.jsonc`)
 //! - Metadata types for requirements, scenarios, decisions, tasks
 //! - AST surgery for spec-delta merging
+//! - Fuzzy matching for "did you mean" suggestions
 //! - Archive orchestration
 
 pub mod config;
+pub mod fuzzy;
 pub mod metadata;
 pub mod surgery;
 

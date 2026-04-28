@@ -281,6 +281,7 @@ fn cmd_status(name: &str, json: bool) {
         change_path
     } else {
         eprintln!("error: '{}' not found in typspec/specs/ or typspec/changes/", name);
+        suggest_name(name, &[PathBuf::from("typspec/specs"), PathBuf::from("typspec/changes")]);
         std::process::exit(1);
     };
 
@@ -393,6 +394,7 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
 
     if !change_path.exists() {
         eprintln!("error: change '{}' not found at {}", name, change_path.display());
+        suggest_name(name, &[PathBuf::from("typspec/changes")]);
         std::process::exit(1);
     }
 
@@ -561,6 +563,30 @@ fn cmd_install() {
         Err(e) => {
             eprintln!("error: failed to load config: {}", e);
         }
+    }
+}
+
+/// Suggest a "did you mean" name when a spec or change is not found.
+fn suggest_name(input: &str, dirs: &[PathBuf]) {
+    let mut candidates: Vec<String> = Vec::new();
+    for dir in dirs {
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                if entry.path().extension().map(|e| e == "typ").unwrap_or(false) {
+                    if let Some(name) = entry.path().file_stem() {
+                        candidates.push(name.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    let suggestions = typspec_core::fuzzy::best_fuzzy_match(input, &candidates);
+    if suggestions.len() == 1 {
+        eprintln!("  tip: a similar name exists: '{}'", suggestions[0]);
+    } else if suggestions.len() > 1 {
+        let joined = suggestions.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join("' or '");
+        eprintln!("  tip: a similar name exists: {}?", joined);
     }
 }
 
