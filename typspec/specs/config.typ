@@ -185,3 +185,19 @@ Each supported tool SHALL have a known skills directory path:
   )
 ]
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+#requirement("init-creates-example-bibliography", priority: "shall")[
+The `typspec init` command SHOULD write a minimal `example.yaml` to
+  the `bibliographies/` directory. This gives users a reference format
+  for adding their own bibliography terms.
+
+  The file SHALL contain a minimal valid example with one or two
+  generic entries, NOT typspec-repo-specific terms like `damlev` or
+  `fuzzy-matching`.   It SHALL start with a comment linking to the
+  Hayagriva file format documentation and the JSON Schema tracking
+  issue (https://github.com/typst/hayagriva/issues/33).
+
+  #scenario("init creates example.yaml",
+    when: [`typspec init` runs],
+    then: [`typspec/bibliographies/example.yaml` exists with generic content and Hayagriva docs link],
+  )
+]
