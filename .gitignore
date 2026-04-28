@@ -1,5 +1,5 @@
 # Rust
-/target
+**/target
 Cargo.lock
 
 # Typst compilation
@@ -17,5 +17,5 @@ Cargo.lock
 .DS_Store
 Thumbs.db
 
-# Typspec local
+# Typspec
 .typspec.local.jsonc
