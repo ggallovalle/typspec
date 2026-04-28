@@ -50,8 +50,14 @@ provided, infer from context.
    git add -A && git commit -m "feat: implemented <change>"
    ```
 
-**Guardrails**
+**Finding archived changes**
 
-- Run `typspec status <name>` first to check task completion
-- If spec files have uncommitted changes, archive will warn but proceed
-- Archived changes are preserved — use `typspec status` on them to see metadata
+Use `typspec which <name>` to find archived changes by name
+(@fuzzy-matching applies). Archived changes are preserved with their
+full metadata — use `typspec status <name>` on them to inspect.
+
+**Bibliography references**
+
+Add `#bibliography("typspec/bibliographies/domain-language.yaml", style: "iso-690-numeric")`
+at the end of spec documents to resolve `@fuzzy-matching` and `@damlev`
+citations. The CLI passes `--root` so paths resolve from the project root.

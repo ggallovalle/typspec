@@ -22,27 +22,29 @@ code and checking off items.
    ```
    typspec list
    ```
-   If no change specified and multiple exist, ask which one.
+   This shows active changes with their file paths. If no change specified and
+   multiple exist, ask which one.
 
 2. **Read the change document**
    ```
+   typspec status <name>
    typspec status <name> --json
    ```
-   This gives you requirements, scenarios, decisions, and tasks with
-   completion status. Also read the full file at `typspec/changes/<name>.typ`.
+   This gives requirements, scenarios, decisions, and tasks with completion
+   status. The path is shown in the list output.
 
 3. **Understand what needs to be done**
    - Check the proposal for motivation and scope
-   - Read the design decisions for rationale
-   - Check the spec-deltas for what requirements change
+   - Read design decisions for rationale
+   - Check spec-deltas for what requirements change
    - Task `done: false` items are what needs implementing
 
 4. **Work through tasks one by one**
 
-   Use the **TodoWrite tool** to track progress through the tasks.
+   Use **TodoWrite tool** to track progress.
 
    For each task:
-   - Read any context needed (existing code, specs, etc.)
+   - Read context (existing code, specs, etc.)
    - Implement the required changes
    - Mark the task as `done: true` in the change file
 
@@ -50,19 +52,12 @@ code and checking off items.
    ```
    typspec validate typspec/changes/<name>.typ
    ```
-   Also run any relevant project tests.
+   Also run relevant project tests.
 
 6. **Check final status**
    ```
    typspec status <name>
    ```
-
-**Output**
-
-When all tasks complete:
-- "All tasks complete. Run `/typspec-archive <name>` to archive."
-
-If some remain: "X/Y tasks complete. Continue with `/typspec-apply`."
 
 **Resuming**
 

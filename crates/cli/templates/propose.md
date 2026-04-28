@@ -34,20 +34,27 @@ When ready to implement, run `/typspec-apply`.
 
    **Do NOT proceed without understanding what the user wants to build.**
 
-2. **Create the change file**
+2. **Discover what exists**
+   ```
+   typspec list --specs
+   typspec list
+   ```
+   This shows existing specs with their file paths. Use `typspec which <name>` to find a file's exact location.
+
+3. **Evaluate spec fit**
+
+   If the change doesn't logically fit any existing spec, explain to the user:
+   > "The scope of this change doesn't align with any existing specs. We need a new spec to define this domain."
+
+   Then prompt: `typspec new spec <name>` to create it before proceeding.
+
+4. **Create the change file**
    ```
    typspec new change <name>
    ```
    This creates a scaffolded `.typ` file at `typspec/changes/<name>.typ`.
 
-3. **Read existing specs for context**
-   ```
-   typspec list --specs
-   typspec status <spec-name> --json
-   ```
-   Understand what specs exist and what requirements they contain.
-
-4. **Fill the change document**
+5. **Fill the change document**
 
    The change document is a single `.typ` file. Fill in these sections:
 
@@ -57,31 +64,33 @@ When ready to implement, run `/typspec-apply`.
 
    **Design section:**
    - Use `#decision("Title", rationale: [...], alternatives: [...])` blocks
-   - Each decision captures the choice, the reasoning, and what was rejected
 
    **Spec-deltas section:**
    - `#requirement("id", action: "added")[body #scenario(...)]` for new requirements
    - `#requirement("id", action: "modified")[body]` for changed requirements
    - `#requirement("id", action: "removed")[body]` for removed requirements
-   - Each requirement includes `#scenario("name", when: [...], then: [...])` blocks
-   - If the change modifies multiple specs, add `modifies: "spec-name"` to each requirement
+   - Add `modifies: "spec-name"` if the change targets a specific spec
+   - If change modifies multiple specs, each requirement MUST have `modifies:` set
 
    **Tasks section:**
-   - `#task_group("Group Name", (task([Description], done: false), ...))`
+   - `#task_group("Group", (task([Description], done: false), ...))`
    - Add `assignee: "ai"` or `assignee: "human"` for responsibility
    - Add `labels: ("label",)` for filtering
    - Add `refs: ("url",)` for external references
 
-5. **Set the change's `modifies`**
-   - At the top: `#show: change.with(id: "<name>", modifies: ("spec-a", "spec-b"))`
-   - Lists which specs this change modifies
+6. **Set the change's `modifies`**
+   - `#show: change.with(id: "<name>", modifies: ("spec-a", "spec-b"))`
 
-6. **Verify it compiles**
+7. **Add bibliography for citations**
+   - At the end: `#bibliography("typspec/bibliographies/domain-language.yaml", style: "iso-690-numeric")`
+   - Use `@fuzzy-matching` and `@damlev` for fuzzy matching references
+
+8. **Verify it compiles**
    ```
    typspec validate typspec/changes/<name>.typ
    ```
 
-7. **Show a summary**
+9. **Show a summary**
 
    After completing, summarize:
    - Change name and location
@@ -91,8 +100,6 @@ When ready to implement, run `/typspec-apply`.
 **Guardrails**
 
 - Create ALL sections of the change document — not just the proposal
-- If the change modifies multiple specs, each requirement MUST have `modifies:` set
-- If context is critically unclear, ask the user
-- If a change with that name already exists, ask if user wants to continue it or create a new one
+- If change doesn't fit existing specs, explain and prompt for a new spec
+- If change modifies multiple specs, each requirement MUST have `modifies:` set
 - Always verify the file compiles after writing
-- Use `typspec list` to check active changes before creating

@@ -112,22 +112,22 @@ Out of scope:
 = Tasks
 
 #task_group("1. Propose Template", (
-  task([Update propose.md: reference list --specs with paths, which, canonical structure, \#bibliography()], done: false, labels: ("cli",)),
+  task([Update propose.md: reference list --specs with paths, which, canonical structure, \#bibliography()], done: true, labels: ("cli",)),
 ))
 
 #task_group("2. Explore Template", (
-  task([Update explore.md: reference which, \@fuzzy-matching, canonical dirs], done: false, labels: ("cli",)),
+  task([Update explore.md: reference which, \@fuzzy-matching, canonical dirs], done: true, labels: ("cli",)),
 ))
 
 #task_group("3. Apply Template", (
-  task([Update apply.md: reference list with paths, status for paths], done: false, labels: ("cli",)),
+  task([Update apply.md: reference list with paths, status for paths], done: true, labels: ("cli",)),
 ))
 
 #task_group("4. Archive Template", (
-  task([Update archive.md: reference which for archived changes, bibliographies/], done: false, labels: ("cli",)),
+  task([Update archive.md: reference which for archived changes, bibliographies/], done: true, labels: ("cli",)),
 ))
 
 #task_group("5. Verify", (
-  task([Generate skills with `typspec init --tools opencode`, verify content], done: false, labels: ("tests",)),
-  task([Spot-check each skill for accuracy against current CLI behavior], done: false, labels: ("tests",)),
+  task([Generate skills with `typspec init --tools opencode`, verify content], done: true, labels: ("tests",)),
+  task([Spot-check each skill for accuracy against current CLI behavior], done: true, labels: ("tests",)),
 ))

@@ -18,7 +18,7 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 **Input**: The argument after `/typspec-explore` is whatever the user wants to think about. Could be:
 - A vague idea: "real-time collaboration"
 - A specific problem: "the auth system is getting unwieldy"
-- A change name: "add-dark-mode" (to explore in context of that change)
+- A change name: "add-dark-mode" (to explore in context)
 - A comparison: "postgres vs sqlite for this"
 - Nothing (just enter explore mode)
 
@@ -26,149 +26,51 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 
 ## The Stance
 
-- **Curious, not prescriptive** — Ask questions that emerge naturally, don't follow a script
-- **Open threads, not interrogations** — Surface multiple interesting directions and let the user follow what resonates
+- **Curious, not prescriptive** — Ask questions that emerge naturally
 - **Visual** — Use Mermaid diagrams when they help, ASCII otherwise
-- **Adaptive** — Follow interesting threads, pivot when new information emerges
-- **Patient** — Don't rush to conclusions, let the shape of the problem emerge
-- **Grounded** — Explore the actual codebase when relevant, don't just theorize
+- **Adaptive** — Follow interesting threads, pivot when new info emerges
+- **Grounded** — Explore the codebase when relevant
 
 ---
 
 ## What You Might Do
 
-**Explore the problem space**
-- Ask clarifying questions that emerge from what they said
-- Challenge assumptions
-- Reframe the problem
-- Find analogies
+**Explore the problem space** — clarify, challenge assumptions, reframe
 
 **Investigate the codebase**
-- Map existing architecture relevant to the discussion
-- Find integration points
-- Identify patterns already in use
-- Surface hidden complexity
+- `typspec list --specs` and `typspec list` to see what exists
+- `typspec status <name>` to inspect specs and changes
+- `typspec which <name>` to find file locations (@fuzzy-matching applies)
+- Read the actual `.typ` files for full context
 
-**Compare options**
-- Brainstorm multiple approaches
-- Build comparison tables
-- Sketch tradeoffs
-- Recommend a path (if asked)
+**Compare options** — brainstorm approaches, build tables, sketch tradeoffs
 
-**Visualize**
-
-Use Mermaid for structured concepts:
-```mermaid
-flowchart LR
-    A[State A] -->|transition| B[State B]
-    B --> C[State C]
-```
-
-ASCII for simple sketches:
-```
-┌────────┐    ┌────────┐
-│ State  │───▶│ State  │
-│   A    │    │   B    │
-└────────┘    └────────┘
-```
-
-**Surface risks and unknowns**
-- Identify what could go wrong
-- Find gaps in understanding
-- Suggest investigations
+**Surface risks** — identify what could go wrong, find gaps
 
 ---
 
 ## Typspec Awareness
 
-### Check for context
-
-At the start, quickly check what exists:
+At the start, check what exists:
 ```
 typspec list
 typspec list --specs
 ```
 
-If the user mentioned a specific change, read its file at `typspec/changes/<name>.typ`.
-
-### When no change exists
-
-Think freely. When insights crystallize, offer:
-- "This feels solid enough to start a change. Want me to create a proposal?"
+If the user mentioned a change, read it at `typspec/changes/<name>.typ` or use `typspec which <name>` to find it.
 
 ### When a change exists
 
-1. **Read the change document** at `typspec/changes/<name>.typ`
-2. **Check its status**: `typspec status <name>`
-3. **Reference sections naturally** — "Your design mentions X, but Y fits better..."
-4. **Offer to capture decisions** — "That's a design decision. Want me to add it?"
-
----
-
-## Handling Different Entry Points
-
-**Vague idea:**
-```
-User: I'm thinking about adding real-time collaboration
-
-You: Real-time collab is a big space. Let me think about this...
-
-      AWARENESS → COORDINATION → SYNC
-          │            │             │
-       trivial     moderate      complex
-
-      Where's your head at?
-```
-
-**Specific problem:**
-```
-User: The auth system is a mess
-
-You: [reads codebase, checks specs]
-
-      ┌─────────┐  ┌─────────┐  ┌─────────┐
-      │ Google  │  │  GitHub │  │  Email  │
-      └────┬────┘  └────┬────┘  └────┬────┘
-           │             │             │
-           └─────────────┼─────────────┘
-                         ▼
-                   ┌───────────┐
-                   │  Session  │
-                   └─────┬─────┘
-                         ▼
-                   ┌───────────┐
-                   │   Perms   │
-                   └───────────┘
-
-      I see three tangles. Which one's burning?
-```
-
-**Comparing options:**
-```
-User: Should we use Postgres or SQLite?
-You: For what context?
-User: A CLI tool
-
-You:   Constraints: no daemon, offline, single user
-              SQLite     Postgres
-      Deploy   embedded ✓  needs server ✗
-      Offline  yes ✓       no ✗
-
-      SQLite. Not even close.
-```
-
----
-
-## Ending Discovery
-
-Discovery might flow into a proposal, update a change document, or just provide clarity. When things crystallize, offer a summary — but it's optional.
+Reference its sections naturally:
+- "Your design mentions X, but Y fits better..."
+- Offer to capture decisions: "That's a design decision. Want me to add it?"
 
 ---
 
 ## Guardrails
 
-- **Don't implement** — Never write code or create change documents without user request
-- **Don't fake understanding** — If something is unclear, dig deeper
-- **Don't rush** — Discovery is thinking time, not task time
-- **Do visualize** — A good diagram is worth many paragraphs
-- **Do explore the codebase** — Ground discussions in reality
+- **Don't implement** — Never write code or create changes without user request
+- **Don't fake understanding** — Dig deeper if unclear
+- **Don't force structure** — Let patterns emerge
+- **Do visualize** — Diagrams > paragraphs
+- **Do explore the codebase** — Ground discussion in reality

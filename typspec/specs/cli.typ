@@ -464,10 +464,23 @@ The `typspec init` command SHALL accept a `--tools` flag that accepts
   )
 ]
 #requirement("skill-templates", priority: "shall")[
-The generated skill templates SHALL NOT hardcode directory paths.
-  Instead, they SHALL instruct the AI to use `typspec list --specs`
-  and `typspec list` to discover file locations, and `typspec status`
-  to find the exact file path.
+All four skill templates SHALL be updated to reflect current typspec
+  behavior. Specific changes per template:
+
+  *propose*: Reference `typspec list --specs` with paths, `typspec which`,
+  canonical structure (`typspec/typspec.jsonc`, `typspec/specs/`, etc.),
+  `#bibliography("typspec/bibliographies/...")` for citations. When no
+  existing spec fits the change, prompt user to create a new spec with
+  `typspec new spec <name>`.
+
+  *explore*: Mention `typspec which` for finding files, `@fuzzy-matching`
+  for name resolution, canonical directory layout.
+
+  *apply*: Reference `typspec list` with paths, `typspec status` for
+  task descriptions and paths.
+
+  *archive*: Mention `typspec which` for finding archived changes,
+  `typspec/bibliographies/` for references.
 ]
 #requirement("attribution-comment", priority: "shall")[
 Each generated SKILL.md file SHALL contain an attribution comment at the
@@ -589,5 +602,32 @@ The CLI SHALL provide a `typspec which <name>` command that locates a
   #scenario("which with no match and no close name errors",
     when: [`typspec which completely-unrelated`],
     then: [error without suggestion],
+  )
+]
+#requirement("skill-updates-for-list", priority: "shall")[
+The skill templates SHALL reference `typspec list` and `typspec list --specs`
+  as showing file paths, e.g., `module-api (typspec/specs/module-api.typ)`.
+
+  #scenario("propose skill references list with paths",
+    when: [skill is rendered],
+    then: [it tells AI to use `typspec list --specs` to find specs with their paths],
+  )
+]
+#requirement("skill-references-which", priority: "shall")[
+The skill templates SHALL reference `typspec which <name>` as the way to
+  find the exact file path for a spec, change, or archived change.
+
+  #scenario("archive skill references which",
+    when: [skill is rendered],
+    then: [it tells AI to use `typspec which <name>` to find archived changes],
+  )
+]
+#requirement("skill-references-domain-language", priority: "shall")[
+The skill templates SHALL use `@fuzzy-matching` (from domain-language.yaml)
+  when describing how typspec handles name lookup failures.
+
+  #scenario("explore skill uses @fuzzy-matching",
+    when: [skill describes name resolution],
+    then: [references `@fuzzy-matching`],
   )
 ]
