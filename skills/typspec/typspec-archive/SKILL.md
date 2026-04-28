@@ -52,12 +52,6 @@ provided, infer from context.
 
 **Finding archived changes**
 
-Use `typspec which <name>` to find archived changes by name
-(@fuzzy-matching applies). Archived changes are preserved with their
-full metadata — use `typspec status <name>` on them to inspect.
-
-**Bibliography references**
-
-Add `#bibliography("typspec/bibliographies/domain-language.yaml", style: "iso-690-numeric")`
-at the end of spec documents to resolve `@fuzzy-matching` and `@damlev`
-citations. The CLI passes `--root` so paths resolve from the project root.
+Use `typspec which <name>` to find archived changes by name.
+Archived changes are preserved with their full metadata — use
+`typspec status <name>` on them to inspect.

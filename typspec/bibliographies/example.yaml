@@ -1,0 +1,14 @@
+# Hayagriva bibliography file
+# https://github.com/typst/hayagriva/blob/main/docs/file-format.md
+# JSON Schema tracking: https://github.com/typst/hayagriva/issues/33
+#
+# Replace this file with your own bibliography entries.
+# Reference it from your .typ files with:
+#   #bibliography("typspec/bibliographies/<your-file>.yaml")
+
+example-book:
+  type: Book
+  title: Example Book Title
+  author: Author, Jane
+  date: 2024
+  publisher: Example Press

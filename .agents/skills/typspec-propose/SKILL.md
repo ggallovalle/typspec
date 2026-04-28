@@ -6,7 +6,7 @@ compatibility: Requires typspec CLI.
 metadata:
   author: typspec
   version: "0.1.0"
-  generatedBy: "VERSION"
+  generatedBy: "0.1.0"
 ---
 
 Propose a new change — create a change document with all sections in one step.
@@ -81,9 +81,9 @@ When ready to implement, run `/typspec-apply`.
 6. **Set the change's `modifies`**
    - `#show: change.with(id: "<name>", modifies: ("spec-a", "spec-b"))`
 
-7. **Add bibliography for citations**
-   - At the end: `#bibliography("typspec/bibliographies/domain-language.yaml", style: "iso-690-numeric")`
-   - Use `@fuzzy-matching` and `@damlev` for fuzzy matching references
+7. **Add bibliography for citations (optional)**
+   - At the end: `#bibliography("typspec/bibliographies/<your-file>.yaml", style: "iso-690-numeric")`
+   - Replace `<your-file>` with your actual bibliography file name
 
 8. **Verify it compiles**
    ```

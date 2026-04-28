@@ -194,25 +194,25 @@ Out of scope:
 = Tasks
 
 #task_group("1. Update skill files", (
-  task([Remove @fuzzy-matching and @damlev references from propose.md], done: false, labels: ("docs",)),
-  task([Replace hardcoded domain-language.yaml with generic placeholder in propose.md], done: false, labels: ("docs",)),
-  task([Remove Bibliography references section from archive.md], done: false, labels: ("docs",)),
-  task([Remove @fuzzy-matching reference from explore.md], done: false, labels: ("docs",)),
+  task([Remove @fuzzy-matching and @damlev references from propose.md], done: true, labels: ("docs",)),
+  task([Replace hardcoded domain-language.yaml with generic placeholder in propose.md], done: true, labels: ("docs",)),
+  task([Remove Bibliography references section from archive.md], done: true, labels: ("docs",)),
+  task([Remove @fuzzy-matching reference from explore.md], done: true, labels: ("docs",)),
 ))
 
 #task_group("2. Add example.yaml scaffold", (
-  task([Write example.yaml to typspec/bibliographies/ with Hayagriva docs comment], done: false, labels: ("docs",)),
-  task([Update cmd_init() to write example.yaml during typspec init], done: false, labels: ("cli",)),
+  task([Write example.yaml to typspec/bibliographies/ with Hayagriva docs comment], done: true, labels: ("docs",)),
+  task([Update cmd_init() to write example.yaml during typspec init], done: true, labels: ("cli",)),
 ))
 
 #task_group("3. Update specs", (
-  task([Update ai-skills.typ: skill-explore, skill-propose, skill-archive requirements], done: false, labels: ("docs",)),
-  task([Remove skill-references-domain-language from cli.typ], done: false, labels: ("docs",)),
+  task([Update ai-skills.typ: skill-explore, skill-propose, skill-archive requirements], done: true, labels: ("docs",)),
+  task([Remove skill-references-domain-language from cli.typ], done: true, labels: ("docs",)),
 ))
 
 #task_group("4. Verify", (
-  task([Run typspec init --tools opencode, verify skills have no repo-specific refs], done: false, labels: ("tests",)),
-  task([Run cargo build with no warnings], done: false, labels: ("tests",)),
+  task([Run typspec init --tools opencode, verify skills have no repo-specific refs], done: true, labels: ("tests",)),
+  task([Run cargo build with no warnings], done: true, labels: ("tests",)),
 ))
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

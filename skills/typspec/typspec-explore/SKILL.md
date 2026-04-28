@@ -40,7 +40,7 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 **Investigate the codebase**
 - `typspec list --specs` and `typspec list` to see what exists
 - `typspec status <name>` to inspect specs and changes
-- `typspec which <name>` to find file locations (@fuzzy-matching applies)
+- `typspec which <name>` to find file locations
 - Read the actual `.typ` files for full context
 
 **Compare options** — brainstorm approaches, build tables, sketch tradeoffs

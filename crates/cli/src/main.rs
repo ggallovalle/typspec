@@ -162,6 +162,26 @@ fn cmd_init(path: Option<&Path>, json: bool, tools: Option<&str>) {
     std::fs::create_dir_all(&archive_dir).expect("failed to create archive dir");
     std::fs::create_dir_all(&bibliographies_dir).expect("failed to create bibliographies dir");
 
+    let example_yaml = bibliographies_dir.join("example.yaml");
+    if !example_yaml.exists() {
+        let content = r#"# Hayagriva bibliography file
+# https://github.com/typst/hayagriva/blob/main/docs/file-format.md
+# JSON Schema tracking: https://github.com/typst/hayagriva/issues/33
+#
+# Replace this file with your own bibliography entries.
+# Reference it from your .typ files with:
+#   #bibliography("typspec/bibliographies/<your-file>.yaml")
+
+example-book:
+  type: Book
+  title: Example Book Title
+  author: Author, Jane
+  date: 2024
+  publisher: Example Press
+"#;
+        std::fs::write(&example_yaml, content).expect("failed to write example.yaml");
+    }
+
     if !config_path.exists() {
         let config = r#"{
   "$schema": "https://typspec.dev/schemas/v1.json",

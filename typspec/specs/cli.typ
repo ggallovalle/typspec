@@ -622,15 +622,6 @@ The skill templates SHALL reference `typspec which <name>` as the way to
     then: [it tells AI to use `typspec which <name>` to find archived changes],
   )
 ]
-#requirement("skill-references-domain-language", priority: "shall")[
-The skill templates SHALL use `@fuzzy-matching` (from domain-language.yaml)
-  when describing how typspec handles name lookup failures.
-
-  #scenario("explore skill uses @fuzzy-matching",
-    when: [skill describes name resolution],
-    then: [references `@fuzzy-matching`],
-  )
-]
 #requirement("single-source-skills", priority: "shall")[
 Skill templates SHALL be sourced from the canonical `skills/typspec/`
   directory only. The `crates/cli/templates/` directory and `tera`
