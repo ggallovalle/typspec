@@ -218,3 +218,56 @@ This document specifies the commands and behavior of the `typspec` CLI.
     then: [CLI errors suggesting `typspec init`],
   )
 ]
+#requirement("fuzzy-name-matching", priority: "shall")[
+The `status` and `archive` commands SHALL perform fuzzy matching when a
+  spec or change name is not found.
+
+  The CLI SHALL collect all available names from the appropriate directory,
+  compute Levenshtein edit distance against the user's input, and display
+  the closest match when the similarity exceeds approximately 67%.
+
+  #scenario("suggests closest match on typo",
+    given: [a change named `customizable-paths` exists],
+    when: [user runs `typspec status customizalbs-path`],
+    then: [error shows `did you mean 'customizable-paths'?`],
+  )
+
+  #scenario("no suggestion when no close match",
+    given: [available names are `module-api`, `cli`, `config`],
+    when: [user runs `typspec status completely-unrelated`],
+    then: [error shows without any suggestion],
+  )
+
+  #scenario("multiple suggestions for equal distance",
+    given: [names `add-auth` and `add-cache` both exist],
+    when: [user runs `typspec status add-`],
+    then: [shows both: `did you mean 'add-auth' or 'add-cache'?`],
+  )
+
+  #scenario("output format matches clap",
+    when: [suggestion is shown],
+    then: [format is `tip: a similar name exists: '<name>'`],
+  )
+]
+#requirement("added-body-from-source", priority: "shall")[
+When building `DeltaOp` for an "added" requirement, the CLI SHALL extract
+  the requirement's body from the change file's source text.
+
+  Extraction SHALL find the `#requirement("id", ...)` call in the change file
+  and capture everything inside its body content block `[...]`.
+
+  Fallback to a TODO stub only when extraction fails (e.g., the source file
+  was modified after compilation).
+
+  #scenario("body extracted from change file",
+    given: [change file has `#requirement("my-id", action: "added")[actual body #scenario(...)]`],
+    when: [archive processes this requirement],
+    then: [target spec receives `#requirement("my-id")[actual body #scenario(...)]`],
+  )
+
+  #scenario("fallback to TODO on extraction failure",
+    given: [change file source cannot be read or parsed],
+    when: [archive processes added requirement],
+    then: [TODO stub inserted as before],
+  )
+]

@@ -449,16 +449,17 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
         }
     }
 
-    // Map spec names to file paths
+    // Map spec names to file paths — try all modified specs
     let spec_dir = PathBuf::from("typspec/specs");
     let mut spec_deltas: std::collections::HashMap<String, Vec<typspec_core::surgery::DeltaOp>> = std::collections::HashMap::new();
 
-    // Group ops by spec (for now, all ops go to first spec in modifies)
-    if !delta_ops.is_empty() && !modifies.is_empty() {
-        let first_spec = format!("{}.typ", modifies[0]);
-        let spec_path = spec_dir.join(&first_spec);
-        if spec_path.exists() {
-            spec_deltas.insert(spec_path.to_string_lossy().to_string(), delta_ops);
+    if !delta_ops.is_empty() {
+        for spec_name in &modifies {
+            let spec_file = format!("{}.typ", spec_name);
+            let spec_path = spec_dir.join(&spec_file);
+            if spec_path.exists() {
+                spec_deltas.insert(spec_path.to_string_lossy().to_string(), delta_ops.clone());
+            }
         }
     }
 
