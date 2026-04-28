@@ -90,7 +90,7 @@ Out of scope:
 
 == ADDED Requirements
 
-#requirement("requirement-modifies-param", priority: "shall", action: "added")[
+#requirement("requirement-modifies-param", priority: "shall", action: "added", modifies: "module-api")[
   The `#requirement` function SHALL accept an optional `modifies` named
   parameter that accepts a string (the spec name this requirement targets).
 
@@ -120,7 +120,7 @@ Out of scope:
   )
 ]
 
-#requirement("archive-routes-by-modifies", priority: "shall", action: "added")[
+#requirement("archive-routes-by-modifies", priority: "shall", action: "added", modifies: "cli")[
   The archive command SHALL use each requirement's `modifies` field to
   decide which spec file to apply the delta to.
 
@@ -134,7 +134,7 @@ Out of scope:
   )
 ]
 
-#requirement("validation-requirement-in-change-modifies", priority: "shall", action: "added")[
+#requirement("validation-requirement-in-change-modifies", priority: "shall", action: "added", modifies: "cli")[
   If a requirement specifies a spec in its `modifies` that is NOT listed in
   the change's top-level `modifies`, the archive SHALL produce an error
   listing the available specs from the change declaration.
@@ -146,7 +146,7 @@ Out of scope:
   )
 ]
 
-#requirement("validation-target-spec-exists", priority: "shall", action: "added")[
+#requirement("validation-target-spec-exists", priority: "shall", action: "added", modifies: "cli")[
   If the target spec file for a requirement does not exist on disk, the
   archive SHALL error and suggest existing spec names using the "did you
   mean" Levenshtein heuristic.
@@ -160,7 +160,7 @@ Out of scope:
 
 == MODIFIED Requirements
 
-#requirement("requirement-fn", action: "modified")[
+#requirement("requirement-fn", action: "modified", modifies: "module-api")[
   The `#requirement` function signature SHALL be extended with an optional
   `modifies` (string or array of strings) parameter.
 
@@ -171,21 +171,19 @@ Out of scope:
 = Tasks
 
 #task_group("1. Module", (
-  task([Add `modifies` parameter to `#requirement` (single string, spec name)], done: false, labels: ("module",)),
-  task([Emit `modifies` field in requirement metadata (null when omitted)], done: false, labels: ("module",)),
+  task([Add `modifies` parameter to `#requirement` (single string, spec name)], done: true, labels: ("module",)),
+  task([Emit `modifies` field in requirement metadata (null when omitted)], done: true, labels: ("module",)),
 ))
 
 #task_group("2. Core Library", (
-  task([Update `metadata_to_delta_ops` to group ops by target spec], done: false, labels: ("core",)),
-  task([Add validation helper: check modifies subset of change modifies], done: false, labels: ("core",)),
-  task([Add validation helper: check target spec file exists], done: false, labels: ("core",)),
+  task([Update `metadata_to_delta_ops` to extract modifies from metadata], done: true, labels: ("core",)),
+  task([Add `group_delta_ops_by_spec`: validate modifies ⊆ change modifies, target exists], done: true, labels: ("core",)),
 ))
 
 #task_group("3. CLI Archive Command", (
-  task([Group delta ops by requirement.modifies instead of applying all to all], done: false, labels: ("cli",)),
-  task([Validate requirement modifies ⊆ change modifies, error + suggest], done: false, labels: ("cli",)),
-  task([Validate target spec file exists, error + did-you-mean], done: false, labels: ("cli",)),
-  task([When modifies is null and change modifies > 1 spec, error], done: false, labels: ("cli",)),
+  task([Use group_delta_ops_by_spec instead of old all-to-all logic], done: true, labels: ("cli",)),
+  task([Print validation errors (missing modifies, spec not found)], done: true, labels: ("cli",)),
+  task([When modifies is null and change modifies > 1 spec, error], done: true, labels: ("cli",)),
 ))
 
 #task_group("4. Fix Archived Changes", (
@@ -195,9 +193,9 @@ Out of scope:
 ))
 
 #task_group("5. Self-fix: This Change", (
-  task([Add `modifies: "module-api"` to `#requirement` calls that target module-api], done: false, labels: ("self",)),
-  task([Add `modifies: "cli"` to `#requirement` calls that target cli], done: false, labels: ("self",)),
-  task([Verify this change compiles after adding modifies], done: false, labels: ("self",)),
+  task([Add `modifies: "module-api"` to `#requirement` calls that target module-api], done: true, labels: ("self",)),
+  task([Add `modifies: "cli"` to `#requirement` calls that target cli], done: true, labels: ("self",)),
+  task([Verify this change compiles and archives clean], done: true, labels: ("self",)),
 ))
 
 #task_group("6. Module API Spec Update", (

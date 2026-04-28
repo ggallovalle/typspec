@@ -34,8 +34,8 @@
 
 // ── Requirements ───────────────────────────────
 
-#let requirement(id, priority: "shall", action: none, body) = {
-  metadata((kind: "typspec:requirement", id: id, priority: priority, action: action))
+#let requirement(id, priority: "shall", action: none, modifies: none, body) = {
+  metadata((kind: "typspec:requirement", id: id, priority: priority, action: action, modifies: modifies))
   heading(level: 2, numbering: "1.", id)
   body
   v(0.5em)

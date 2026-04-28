@@ -16,6 +16,7 @@ pub struct SurgeryResult {
 pub struct DeltaOp {
     pub action: DeltaAction,
     pub id: String,
+    pub modifies: Option<String>,
     pub content: Option<String>,
 }
 

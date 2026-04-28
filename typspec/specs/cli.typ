@@ -271,3 +271,73 @@ When building `DeltaOp` for an "added" requirement, the CLI SHALL extract
     then: [TODO stub inserted as before],
   )
 ]
+#requirement("archive-routes-by-modifies", priority: "shall")[
+The archive command SHALL use each requirement's `modifies` field to
+  decide which spec file to apply the delta to.
+
+  Requires are grouped by target spec, and each group is applied only to
+  its corresponding spec file.
+
+  #scenario("requirements routed to different specs",
+    given: [change modifies ("cli", "config"), req-a targets "cli", req-b targets "config"],
+    when: [archive runs],
+    then: [req-a inserted into cli.typ only, req-b into config.typ only],
+  )
+]
+#requirement("validation-requirement-in-change-modifies", priority: "shall")[
+If a requirement specifies a spec in its `modifies` that is NOT listed in
+  the change's top-level `modifies`, the archive SHALL produce an error
+  listing the available specs from the change declaration.
+
+  #scenario("requirement targets undeclared spec",
+    given: [change modifies ("cli",), requirement modifies ("config")],
+    when: [archive runs],
+    then: [error: "'config' not in change modifies. Available: cli"],
+  )
+]
+#requirement("validation-target-spec-exists", priority: "shall")[
+If the target spec file for a requirement does not exist on disk, the
+  archive SHALL error and suggest existing spec names using the "did you
+  mean" Levenshtein heuristic.
+
+  #scenario("target spec file missing",
+    given: [typspec/specs/config.typ does not exist],
+    when: [archive tries to apply delta to "config"],
+    then: [error: "spec 'config' not found", with suggestion of closest existing spec],
+  )
+]
+#requirement("archive-routes-by-modifies", priority: "shall")[
+The archive command SHALL use each requirement's `modifies` field to
+  decide which spec file to apply the delta to.
+
+  Requires are grouped by target spec, and each group is applied only to
+  its corresponding spec file.
+
+  #scenario("requirements routed to different specs",
+    given: [change modifies ("cli", "config"), req-a targets "cli", req-b targets "config"],
+    when: [archive runs],
+    then: [req-a inserted into cli.typ only, req-b into config.typ only],
+  )
+]
+#requirement("validation-requirement-in-change-modifies", priority: "shall")[
+If a requirement specifies a spec in its `modifies` that is NOT listed in
+  the change's top-level `modifies`, the archive SHALL produce an error
+  listing the available specs from the change declaration.
+
+  #scenario("requirement targets undeclared spec",
+    given: [change modifies ("cli",), requirement modifies ("config")],
+    when: [archive runs],
+    then: [error: "'config' not in change modifies. Available: cli"],
+  )
+]
+#requirement("validation-target-spec-exists", priority: "shall")[
+If the target spec file for a requirement does not exist on disk, the
+  archive SHALL error and suggest existing spec names using the "did you
+  mean" Levenshtein heuristic.
+
+  #scenario("target spec file missing",
+    given: [typspec/specs/config.typ does not exist],
+    when: [archive tries to apply delta to "config"],
+    then: [error: "spec 'config' not found", with suggestion of closest existing spec],
+  )
+]

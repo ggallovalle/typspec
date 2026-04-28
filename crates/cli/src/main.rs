@@ -449,18 +449,15 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
         }
     }
 
-    // Map spec names to file paths — try all modified specs
+    // Group delta ops by target spec using modifies field
     let spec_dir = PathBuf::from("typspec/specs");
-    let mut spec_deltas: std::collections::HashMap<String, Vec<typspec_core::surgery::DeltaOp>> = std::collections::HashMap::new();
+    let (spec_deltas, validation_errors) = typspec_core::group_delta_ops_by_spec(
+        &delta_ops, &modifies, &spec_dir,
+    );
 
-    if !delta_ops.is_empty() {
-        for spec_name in &modifies {
-            let spec_file = format!("{}.typ", spec_name);
-            let spec_path = spec_dir.join(&spec_file);
-            if spec_path.exists() {
-                spec_deltas.insert(spec_path.to_string_lossy().to_string(), delta_ops.clone());
-            }
-        }
+    // Print validation errors
+    for err in &validation_errors {
+        eprintln!("warning: {}", err);
     }
 
     // Apply deltas

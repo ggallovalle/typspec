@@ -137,3 +137,61 @@ This document specifies the public API of the `@preview/typspec` Typst module.
     then: [renders checked, metadata has `done: true`],
   )
 ]
+#requirement("requirement-modifies-param", priority: "shall")[
+The `#requirement` function SHALL accept an optional `modifies` named
+  parameter that accepts a string (the spec name this requirement targets).
+
+  When `modifies` is set, the requirement only applies to that spec during
+  archive. When omitted, the requirement applies to the change's target spec
+  ONLY if the change modifies a single spec. If the change modifies multiple
+  specs, `modifies` is required on each requirement.
+
+  The metadata emitted SHALL include a `modifies` field with the target
+  spec name, or `none` when omitted.
+
+  #scenario("requirement targets a spec",
+    when: [`#requirement("id", modifies: "cli", action: "added")[...]`],
+    then: [metadata includes `modifies: "cli"`, archive routes to cli.typ only],
+  )
+
+  #scenario("omitted is valid when change modifies one spec",
+    given: [change modifies ("cli",)],
+    when: [`#requirement("id", action: "added")[...]`],
+    then: [applies to cli.typ],
+  )
+
+  #scenario("omitted errors when change modifies multiple specs",
+    given: [change modifies ("cli", "config")],
+    when: [`#requirement("id", action: "added")[...]`],
+    then: [error: "modifies required — change targets multiple specs"],
+  )
+]
+#requirement("requirement-modifies-param", priority: "shall")[
+The `#requirement` function SHALL accept an optional `modifies` named
+  parameter that accepts a string (the spec name this requirement targets).
+
+  When `modifies` is set, the requirement only applies to that spec during
+  archive. When omitted, the requirement applies to the change's target spec
+  ONLY if the change modifies a single spec. If the change modifies multiple
+  specs, `modifies` is required on each requirement.
+
+  The metadata emitted SHALL include a `modifies` field with the target
+  spec name, or `none` when omitted.
+
+  #scenario("requirement targets a spec",
+    when: [`#requirement("id", modifies: "cli", action: "added")[...]`],
+    then: [metadata includes `modifies: "cli"`, archive routes to cli.typ only],
+  )
+
+  #scenario("omitted is valid when change modifies one spec",
+    given: [change modifies ("cli",)],
+    when: [`#requirement("id", action: "added")[...]`],
+    then: [applies to cli.typ],
+  )
+
+  #scenario("omitted errors when change modifies multiple specs",
+    given: [change modifies ("cli", "config")],
+    when: [`#requirement("id", action: "added")[...]`],
+    then: [error: "modifies required — change targets multiple specs"],
+  )
+]

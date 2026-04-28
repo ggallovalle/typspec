@@ -67,6 +67,7 @@ pub fn parse_modifies(value: &serde_json::Value) -> Vec<String> {
 }
 
 /// Convert `typspec:requirement` metadata entries into `DeltaOp`s.
+/// Also extracts the requirement's `modifies` field (optional target spec).
 pub fn metadata_to_delta_ops(entries: &[serde_json::Value]) -> Vec<DeltaOp> {
     let mut ops = Vec::new();
 
@@ -82,6 +83,7 @@ pub fn metadata_to_delta_ops(entries: &[serde_json::Value]) -> Vec<DeltaOp> {
         };
 
         let id = entry["id"].as_str().unwrap_or("").to_string();
+        let modifies = entry["modifies"].as_str().map(|s| s.to_string());
 
         let content = match action {
             DeltaAction::Added => None,
@@ -89,8 +91,67 @@ pub fn metadata_to_delta_ops(entries: &[serde_json::Value]) -> Vec<DeltaOp> {
             DeltaAction::Removed => None,
         };
 
-        ops.push(DeltaOp { action, id, content });
+        ops.push(DeltaOp { action, id, modifies, content });
     }
 
     ops
+}
+
+/// Group delta ops by target spec.
+///
+/// For each op:
+/// - If `modifies` is set, route to that spec file.
+/// - If `modifies` is None and change_modifies has 1 spec, route to that spec.
+/// - If `modifies` is None and change_modifies has >1 specs, error.
+///
+/// Returns a map of spec file paths to delta ops, and a list of validation errors.
+pub fn group_delta_ops_by_spec(
+    ops: &[DeltaOp],
+    change_modifies: &[String],
+    spec_dir: &Path,
+) -> (HashMap<String, Vec<DeltaOp>>, Vec<String>) {
+    let mut deltas: HashMap<String, Vec<DeltaOp>> = HashMap::new();
+    let mut errors: Vec<String> = Vec::new();
+
+    for op in ops {
+        let target = match &op.modifies {
+            Some(spec_name) => spec_name.clone(),
+            None => {
+                if change_modifies.len() == 1 {
+                    change_modifies[0].clone()
+                } else {
+                    let available = change_modifies.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", ");
+                    errors.push(format!(
+                        "requirement '{}' is missing `modifies` — change targets multiple specs ({})",
+                        op.id, available
+                    ));
+                    continue;
+                }
+            }
+        };
+
+        // Validate that target is in change_modifies
+        if !change_modifies.contains(&target) {
+            let available = change_modifies.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", ");
+            errors.push(format!(
+                "requirement '{}' targets '{}' which is not in change's modifies. Available: {}",
+                op.id, target, available
+            ));
+            continue;
+        }
+
+        // Check spec file exists
+        let spec_file = format!("{}.typ", target);
+        let spec_path = spec_dir.join(&spec_file);
+        if !spec_path.exists() {
+            errors.push(format!("spec '{}' not found at {}", target, spec_path.display()));
+            continue;
+        }
+
+        deltas.entry(spec_path.to_string_lossy().to_string())
+            .or_default()
+            .push(op.clone());
+    }
+
+    (deltas, errors)
 }
