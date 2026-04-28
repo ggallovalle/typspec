@@ -385,3 +385,26 @@ When building `DeltaOp` for an "added" requirement, the CLI SHALL extract
     then: [TODO stub inserted as before],
   )
 ]
+#requirement("git-mv-for-tracked-files", priority: "shall")[
+When archiving a change, the CLI SHALL use `git mv` to move the file
+  if the change file is tracked by git. Otherwise, SHALL fall back to
+  `std::fs::rename`.
+
+  #scenario("change file is git-tracked",
+    given: [change file is tracked by git],
+    when: [archive runs],
+    then: [`git mv` is used, file history preserved],
+  )
+
+  #scenario("change file is not git-tracked",
+    given: [change file is untracked or not in a git repo],
+    when: [archive runs],
+    then: [`std::fs::rename` is used, same behavior as today],
+  )
+
+  #scenario("git command fails",
+    given: [git is installed but `git mv` fails for some reason],
+    when: [archive runs],
+    then: [error is reported, archive continues with `fs::rename` as fallback],
+  )
+]

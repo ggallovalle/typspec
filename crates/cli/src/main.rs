@@ -499,7 +499,8 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     let archived_name = format!("{}-{}", today, name);
     let dest = archive_dir.join(format!("{}.typ", archived_name));
 
-    std::fs::rename(&change_path, &dest).expect("failed to archive change");
+    // Use git mv when tracked, fs::rename otherwise
+    git_mv_or_rename(&change_path, &dest);
 
     if json {
         println!(r#"{{"archived": "{}"}}"#, dest.display());
@@ -602,6 +603,36 @@ fn suggest_name(input: &str, dirs: &[PathBuf]) {
     } else if suggestions.len() > 1 {
         let joined = suggestions.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join("' or '");
         eprintln!("  tip: a similar name exists: {}?", joined);
+    }
+}
+
+/// Move a file using `git mv` if it's tracked by git, else `std::fs::rename`.
+/// Preserves file history in git repos.
+fn git_mv_or_rename(source: &Path, dest: &Path) {
+    let is_git_tracked = std::process::Command::new("git")
+        .args(["ls-files", "--error-unmatch", &source.to_string_lossy()])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false);
+
+    if is_git_tracked {
+        // Ensure parent directory exists for git mv
+        if let Some(parent) = dest.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let status = std::process::Command::new("git")
+            .args(["mv", &source.to_string_lossy(), &dest.to_string_lossy()])
+            .status()
+            .expect("failed to run git mv");
+
+        if !status.success() {
+            eprintln!("warning: git mv failed, falling back to fs::rename");
+            std::fs::rename(source, dest).expect("failed to archive change");
+        }
+    } else {
+        std::fs::rename(source, dest).expect("failed to archive change");
     }
 }
 
