@@ -76,7 +76,9 @@ The `requirement` function SHALL define a single requirement with a unique ID.
 === Parameters
 
 - `id` (positional, string) — unique identifier for the requirement.
-- `priority` (named, string) — one of `"shall"`, `"must"`, `"should"`, `"may"`. Default `"shall"`.
+- `priority` (named, string) — one of the RFC 2119 keywords: `"shall"`, `"shall not"`, `"should"`, `"should not"`, `"may"`, `"optional"`. Maps to the uppercase RFC equivalents (SHALL, MUST, SHOULD, etc.). Default `"shall"`.
+
+  See [RFC 2119 — Key words for use in RFCs to Indicate Requirement Levels](https://datatracker.ietf.org/doc/html/rfc2119).
 - `action` (named, string, optional) — one of `"added"`, `"modified"`, `"removed"`. Used in spec-deltas within changes. Default: none (active requirement).
 - Body (positional, content) — the requirement text containing nested `#scenario` calls.
 
