@@ -120,7 +120,7 @@ spec files for full requirement definitions.)
 - [x] 2.6 Implement AST surgery: insert new requirement node
 - [x] 2.7 Implement AST surgery: remove requirement node
 - [x] 2.8 Implement archive merge orchestration (delta processing)
-- [ ] 2.9 Implement git SHA conflict detection
+- [x] 2.9 Implement git SHA conflict detection
 
 == 3. CLI
 
@@ -132,7 +132,7 @@ spec files for full requirement definitions.)
 - [x] 3.6 Implement `render` command with optional `--watch`
 - [x] 3.7 Implement `archive` command with file move
 - [x] 3.8 Implement `validate` command with compile check
-- [ ] 3.9 Implement `install` command for git workspace dependencies
+- [x] 3.9 Implement `install` command for git workspace dependencies
 - [x] 3.10 Implement global flags: `--json`, `--dry-run`, `-v`/`-vv`/`-vvv` levels
 - [x] 3.11 Implement `ls` alias for `list` command
 
