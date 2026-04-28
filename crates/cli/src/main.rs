@@ -278,7 +278,7 @@ fn cmd_status(name: &str, json: bool) {
     let target = if spec_path.exists() {
         spec_path
     } else if change_path.exists() {
-        change_path
+        change_path.clone()
     } else {
         eprintln!("error: '{}' not found in typspec/specs/ or typspec/changes/", name);
         suggest_name(name, &[PathBuf::from("typspec/specs"), PathBuf::from("typspec/changes")]);
@@ -313,6 +313,17 @@ fn cmd_status(name: &str, json: bool) {
         println!("  Tasks: {}/{} complete", task_done, task_count);
         println!();
 
+        // Read change file source to extract task descriptions
+        let task_descriptions = if change_path.exists() {
+            std::fs::read_to_string(&change_path)
+                .ok()
+                .map(|text| typspec_core::surgery::extract_task_bodies(&text))
+                .unwrap_or_default()
+        } else {
+            vec![]
+        };
+        let mut task_idx = 0usize;
+
         for entry in &entries {
             let kind = entry["kind"].as_str().unwrap_or("");
             match kind {
@@ -325,7 +336,11 @@ fn cmd_status(name: &str, json: bool) {
                     let done = entry["done"].as_bool().unwrap_or(false);
                     let assignee = entry["assignee"].as_str().map(|a| format!(" @{}", a)).unwrap_or_default();
                     let mark = if done { "[x]" } else { "[ ]" };
-                    println!("  {} [task]{}", mark, assignee);
+                    let desc = task_descriptions.get(task_idx)
+                        .and_then(|d| d.as_deref())
+                        .unwrap_or("(no description)");
+                    task_idx += 1;
+                    println!("  {} {}{}", mark, desc, assignee);
                 }
                 "typspec:decision" => {
                     let title = entry["title"].as_str().unwrap_or("");

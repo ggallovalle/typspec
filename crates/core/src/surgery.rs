@@ -128,6 +128,66 @@ pub fn extract_requirement_body(source_text: &str, id: &str) -> Option<String> {
     extract_body_from_node(&root, id)
 }
 
+/// Extract all `#task[...]` body texts from source, in order of appearance.
+/// Each entry is the body text (first 80 chars, trimmed), or `None` if unparseable.
+pub fn extract_task_bodies(source_text: &str) -> Vec<Option<String>> {
+    let root = typst_syntax::parse(source_text);
+    let mut bodies = Vec::new();
+    collect_task_bodies(&root, &mut bodies);
+    bodies
+}
+
+fn collect_task_bodies(node: &SyntaxNode, bodies: &mut Vec<Option<String>>) {
+    if node.kind() == SyntaxKind::FuncCall {
+        if let Some(funcall) = ast::FuncCall::from_untyped(node) {
+            let callee = funcall.callee();
+            if let Some(ident) = ast::Ident::from_untyped(callee.to_untyped()) {
+                if ident.as_str() == "task" {
+                    // Find the body content block. In markup mode (#task[...](...)) it's a
+                    // direct child of FuncCall. In code mode (task([...], ...)) it's inside Args.
+                    let body = find_task_body_child(node)
+                        .or_else(|| find_task_body_in_args(node));
+                    bodies.push(body);
+                    return;
+                }
+            }
+        }
+    }
+
+    for child in node.children() {
+        collect_task_bodies(child, bodies);
+    }
+}
+
+fn find_task_body_child(node: &SyntaxNode) -> Option<String> {
+    node.children()
+        .find(|c| c.kind() == SyntaxKind::ContentBlock)
+        .map(|cb| extract_body_text(cb))
+}
+
+fn find_task_body_in_args(node: &SyntaxNode) -> Option<String> {
+    node.children()
+        .find(|c| c.kind() == SyntaxKind::Args)
+        .and_then(|args| {
+            args.children()
+                .find(|c| c.kind() == SyntaxKind::ContentBlock)
+                .map(|cb| extract_body_text(cb))
+        })
+}
+
+fn extract_body_text(cb: &SyntaxNode) -> String {
+    let text = cb.clone().into_text().to_string();
+    let inner = text.strip_prefix('[')
+        .and_then(|s| s.strip_suffix(']'))
+        .unwrap_or(&text);
+    let trimmed = inner.trim();
+    if trimmed.len() > 80 {
+        format!("{}...", &trimmed[..80])
+    } else {
+        trimmed.to_string()
+    }
+}
+
 fn extract_body_from_node(node: &SyntaxNode, id: &str) -> Option<String> {
     // Check if this is a FuncCall for requirement("id"...)
     if node.kind() == SyntaxKind::FuncCall {
