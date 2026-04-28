@@ -1,6 +1,6 @@
 #import "../src/lib.typ": change, decision, requirement, scenario, task, task_group
 
-#show: change.with(id: "archive-preserve-body", modifies: ("core", "cli"))
+#show: change.with(id: "archive-preserve-body", modifies: ("cli", "module-api"))
 
 = Proposal
 
@@ -61,7 +61,7 @@ Out of scope:
 
 == ADDED Requirements
 
-#requirement("added-body-from-source", priority: "shall", action: "added")[
+#requirement("added-body-from-source", priority: "shall", action: "added", modifies: "cli")[
   When building `DeltaOp` for an "added" requirement, the CLI SHALL extract
   the requirement's body from the change file's source text.
 
@@ -86,7 +86,7 @@ Out of scope:
 
 == MODIFIED Requirements
 
-#requirement("added-body-from-source", action: "modified")[
+#requirement("added-body-from-source", action: "modified", modifies: "module-api")[
   `metadata_to_delta_ops` SHALL accept an optional `content` parameter for
   "added" requirements. When provided, that content is used instead of
   generating a TODO stub. The function no longer generates TODO stubs itself.

@@ -341,3 +341,47 @@ If the target spec file for a requirement does not exist on disk, the
     then: [error: "spec 'config' not found", with suggestion of closest existing spec],
   )
 ]
+#requirement("added-body-from-source", priority: "shall")[
+When building `DeltaOp` for an "added" requirement, the CLI SHALL extract
+  the requirement's body from the change file's source text.
+
+  Extraction SHALL find the `#requirement("id", ...)` call in the change file
+  and capture everything inside its body content block `[...]`.
+
+  Fallback to a TODO stub only when extraction fails (e.g., the source file
+  was modified after compilation).
+
+  #scenario("body extracted from change file",
+    given: [change file has `#requirement("my-id", action: "added")[actual body #scenario(...)]`],
+    when: [archive processes this requirement],
+    then: [target spec receives `#requirement("my-id")[actual body #scenario(...)]`],
+  )
+
+  #scenario("fallback to TODO on extraction failure",
+    given: [change file source cannot be read or parsed],
+    when: [archive processes added requirement],
+    then: [TODO stub inserted as before],
+  )
+]
+#requirement("added-body-from-source", priority: "shall")[
+When building `DeltaOp` for an "added" requirement, the CLI SHALL extract
+  the requirement's body from the change file's source text.
+
+  Extraction SHALL find the `#requirement("id", ...)` call in the change file
+  and capture everything inside its body content block `[...]`.
+
+  Fallback to a TODO stub only when extraction fails (e.g., the source file
+  was modified after compilation).
+
+  #scenario("body extracted from change file",
+    given: [change file has `#requirement("my-id", action: "added")[actual body #scenario(...)]`],
+    when: [archive processes this requirement],
+    then: [target spec receives `#requirement("my-id")[actual body #scenario(...)]`],
+  )
+
+  #scenario("fallback to TODO on extraction failure",
+    given: [change file source cannot be read or parsed],
+    when: [archive processes added requirement],
+    then: [TODO stub inserted as before],
+  )
+]
