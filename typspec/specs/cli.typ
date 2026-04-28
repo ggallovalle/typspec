@@ -81,9 +81,11 @@ Usage:
 ```
 typspec list specs
 typspec list changes
+typspec ls specs       (alias)
+typspec ls changes     (alias)
 ```
 
-When neither `specs` nor `changes` is specified, defaults to `changes`.
+When neither `specs` nor `changes` is specified, defaults to `changes`. The `ls` alias SHALL behave identically to `list`.
 
 ==== Scenario: list specs
 
