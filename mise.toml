@@ -1,2 +1,7 @@
 [tasks.typspec]
 run = "cargo run -p typspec -- $@"
+
+[shell_alias]
+goroot = "cd {{config_root}}"
+"go.config" = "cd {{config_root}}/.config"
+typspec = "cargo run -q -p typspec --"

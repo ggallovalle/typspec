@@ -13,7 +13,7 @@ pub mod metadata;
 pub mod surgery;
 
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use surgery::{DeltaOp, DeltaAction, SurgeryResult};
 
 /// Run the archive merge for a set of spec-delta operations.
@@ -50,26 +50,6 @@ pub fn write_results(results: &HashMap<String, SurgeryResult>) -> Result<(), Str
         }
     }
     Ok(())
-}
-
-/// Resolved directory paths from config, with defaults.
-pub struct ResolvedPaths {
-    pub specs_dir: PathBuf,
-    pub changes_dir: PathBuf,
-    pub archive_dir: PathBuf,
-    pub config_dir: PathBuf,
-}
-
-/// Resolve directory paths from a config, relative to the given project root.
-/// Falls back to defaults when paths are not configured.
-pub fn resolve_paths(cfg: &config::TypspecConfig, project_root: &Path) -> ResolvedPaths {
-    let paths = cfg.paths.as_ref().cloned().unwrap_or_default();
-    ResolvedPaths {
-        specs_dir: project_root.join(&paths.specs),
-        changes_dir: project_root.join(&paths.changes),
-        archive_dir: project_root.join(&paths.archive),
-        config_dir: project_root.to_path_buf(),
-    }
 }
 
 /// Parse the `modifies` field from a change document's metadata.

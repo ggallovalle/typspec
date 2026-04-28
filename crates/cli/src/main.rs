@@ -120,12 +120,17 @@ fn main() {
 
 fn cmd_init(path: Option<&Path>, json: bool, tools: Option<&str>) {
     let dir = path.unwrap_or_else(|| Path::new("."));
-    let specs_dir = dir.join("typspec").join("specs");
-    let changes_dir = dir.join("typspec").join("changes");
-    let config_path = dir.join("typspec.jsonc");
+    let typspec_dir = dir.join("typspec");
+    let specs_dir = typspec_dir.join("specs");
+    let changes_dir = typspec_dir.join("changes");
+    let archive_dir = typspec_dir.join("archive");
+    let bibliographies_dir = typspec_dir.join("bibliographies");
+    let config_path = typspec_dir.join("typspec.jsonc");
 
     std::fs::create_dir_all(&specs_dir).expect("failed to create specs dir");
     std::fs::create_dir_all(&changes_dir).expect("failed to create changes dir");
+    std::fs::create_dir_all(&archive_dir).expect("failed to create archive dir");
+    std::fs::create_dir_all(&bibliographies_dir).expect("failed to create bibliographies dir");
 
     if !config_path.exists() {
         let config = r#"{
@@ -144,11 +149,13 @@ fn cmd_init(path: Option<&Path>, json: bool, tools: Option<&str>) {
     }
 
     if json {
-        println!(r#"{{"created": ["specs", "changes", "typspec.jsonc"]}}"#);
+        println!(r#"{{"created": ["specs", "changes", "archive", "bibliographies", "typspec/typspec.jsonc"]}}"#);
     } else {
         println!("✓ Initialized typspec project at {}", dir.display());
         println!("  {}/", specs_dir.display());
         println!("  {}/", changes_dir.display());
+        println!("  {}/", archive_dir.display());
+        println!("  {}/", bibliographies_dir.display());
         println!("  {}", config_path.display());
     }
 }
@@ -161,9 +168,11 @@ fn cmd_new(kind: &NewKind, json: bool) {
 }
 
 fn create_spec(name: &str, json: bool) {
-    let (spec_dir, _, _) = load_paths();
+    let paths = resolve_project_paths().unwrap_or_else(|e| {
+        eprintln!("error: {}", e); std::process::exit(1);
+    });
     let spec_file = format!("{}.typ", name);
-    let path = spec_dir.join(&spec_file);
+    let path = paths.specs.join(&spec_file);
 
     let template = format!(
         r#"#show: spec.with(title: "{}")
@@ -196,9 +205,11 @@ fn create_spec(name: &str, json: bool) {
 }
 
 fn create_change(name: &str, json: bool) {
-    let (_, changes_dir, _) = load_paths();
+    let paths = resolve_project_paths().unwrap_or_else(|e| {
+        eprintln!("error: {}", e); std::process::exit(1);
+    });
     let change_file = format!("{}.typ", name);
-    let path = changes_dir.join(&change_file);
+    let path = paths.changes.join(&change_file);
 
     let template = format!(
         r#"#show: change.with(id: "{}")
@@ -254,8 +265,10 @@ What is and isn't changing.
 }
 
 fn cmd_list(specs: bool, json: bool) {
-    let (specs_dir, changes_dir, _) = load_paths();
-    let dir = if specs { specs_dir } else { changes_dir };
+    let paths = resolve_project_paths().unwrap_or_else(|e| {
+        eprintln!("error: {}", e); std::process::exit(1);
+    });
+    let dir = if specs { paths.specs } else { paths.changes };
 
     let entries: Vec<_> = match std::fs::read_dir(&dir) {
         Ok(entries) => entries
@@ -283,22 +296,25 @@ fn cmd_list(specs: bool, json: bool) {
 }
 
 fn cmd_status(name: &str, json: bool) {
-    let (specs_dir, changes_dir, _) = load_paths();
-    let spec_path = specs_dir.join(format!("{}.typ", name));
-    let change_path = changes_dir.join(format!("{}.typ", name));
+    let paths = resolve_project_paths().unwrap_or_else(|e| {
+        eprintln!("error: {}", e); std::process::exit(1);
+    });
+    let spec_path = paths.specs.join(format!("{}.typ", name));
+    let change_path = paths.changes.join(format!("{}.typ", name));
 
     let target = if spec_path.exists() {
         spec_path
     } else if change_path.exists() {
         change_path.clone()
     } else {
-        eprintln!("error: '{}' not found in {}/ or {}/", name, specs_dir.display(), changes_dir.display());
-        suggest_name(name, &[specs_dir.clone(), changes_dir.clone()]);
+        eprintln!("error: '{}' not found in {}/ or {}/", name, paths.specs.display(), paths.changes.display());
+        suggest_name(name, &[paths.specs, paths.changes]);
         std::process::exit(1);
     };
 
+    let root = find_project_root().unwrap_or_else(|| PathBuf::from("."));
     let output = std::process::Command::new("typst")
-        .args(["query", "--root", ".", &target.to_string_lossy(), "metadata", "--field", "value"])
+        .args(["query", "--root", &root.to_string_lossy(), &target.to_string_lossy(), "metadata", "--field", "value"])
         .output()
         .expect("failed to run typst query");
 
@@ -372,8 +388,9 @@ fn cmd_render(path: Option<&Path>, watch: bool) {
 
     let output = target.with_extension("pdf");
 
+    let root = find_project_root().unwrap_or_else(|| PathBuf::from("."));
     let mut cmd = std::process::Command::new("typst");
-    cmd.args(["compile", "--root", ".", &target.to_string_lossy(), &output.to_string_lossy()]);
+    cmd.args(["compile", "--root", &root.to_string_lossy(), &target.to_string_lossy(), &output.to_string_lossy()]);
     if watch {
         cmd.arg("--watch");
     }
@@ -386,8 +403,10 @@ fn cmd_render(path: Option<&Path>, watch: bool) {
 }
 
 fn find_latest_typ_file() -> PathBuf {
-    let (specs_dir, changes_dir, _) = load_paths();
-    let candidates = [specs_dir, changes_dir];
+    let paths = resolve_project_paths().unwrap_or_else(|e| {
+        eprintln!("error: {}", e); std::process::exit(1);
+    });
+    let candidates = [paths.specs, paths.changes];
     let mut latest: Option<PathBuf> = None;
     let mut latest_time = std::time::SystemTime::UNIX_EPOCH;
 
@@ -415,18 +434,20 @@ fn find_latest_typ_file() -> PathBuf {
 }
 
 fn cmd_archive(name: &str, _yes: bool, json: bool) {
-    let (specs_dir, changes_dir, archive_dir) = load_paths();
-    let change_path = changes_dir.join(format!("{}.typ", name));
+    let paths = resolve_project_paths().unwrap_or_else(|e| {
+        eprintln!("error: {}", e); std::process::exit(1);
+    });
+    let change_path = paths.changes.join(format!("{}.typ", name));
 
     if !change_path.exists() {
         eprintln!("error: change '{}' not found at {}", name, change_path.display());
-        suggest_name(name, &[changes_dir.clone()]);
+        suggest_name(name, &[paths.changes.clone()]);
         std::process::exit(1);
     }
 
     // Query the change file for metadata
     let output = std::process::Command::new("typst")
-        .args(["query", "--root", ".", &change_path.to_string_lossy(), "metadata", "--field", "value"])
+        .args(["query", "--root", &paths.root.to_string_lossy(), &change_path.to_string_lossy(), "metadata", "--field", "value"])
         .output()
         .expect("failed to run typst query");
 
@@ -465,7 +486,7 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
 
     // Check for git conflicts — warn if spec files have uncommitted changes
     for spec_name in &modifies {
-        let spec_file = specs_dir.join(format!("{}.typ", spec_name));
+        let spec_file = paths.specs.join(format!("{}.typ", spec_name));
         if spec_file.exists() {
             check_git_conflict(&spec_file, json);
         }
@@ -473,7 +494,7 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
 
     // Group delta ops by target spec using modifies field
     let (spec_deltas, validation_errors) = typspec_core::group_delta_ops_by_spec(
-        &delta_ops, &modifies, &specs_dir,
+        &delta_ops, &modifies, &paths.specs,
     );
 
     // Print validation errors
@@ -513,11 +534,11 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     }
 
     // Move change to archive
-    std::fs::create_dir_all(&archive_dir).expect("failed to create archive dir");
+    std::fs::create_dir_all(&paths.archive).expect("failed to create archive dir");
 
     let today = today_date();
     let archived_name = format!("{}-{}", today, name);
-    let dest = archive_dir.join(format!("{}.typ", archived_name));
+    let dest = paths.archive.join(format!("{}.typ", archived_name));
 
     // Use git mv when tracked, fs::rename otherwise
     git_mv_or_rename(&change_path, &dest);
@@ -531,9 +552,10 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
 
 fn cmd_validate(path: Option<&Path>) {
     let target = path.unwrap_or_else(|| Path::new("."));
+    let root = find_project_root().unwrap_or_else(|| PathBuf::from("."));
 
     let status = std::process::Command::new("typst")
-        .args(["compile", "--root", ".", &target.to_string_lossy()])
+        .args(["compile", "--root", &root.to_string_lossy(), &target.to_string_lossy()])
         .arg("--format=pdf")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
@@ -626,11 +648,54 @@ fn suggest_name(input: &str, dirs: &[PathBuf]) {
     }
 }
 
-/// Load configured paths from typspec config, with defaults.
-fn load_paths() -> (PathBuf, PathBuf, PathBuf) {
-    let cfg = typspec_core::config::load_config(Path::new(".")).unwrap_or_default();
-    let r = typspec_core::resolve_paths(&cfg, Path::new("."));
-    (r.specs_dir, r.changes_dir, r.archive_dir)
+/// Canonical paths resolved from the project root.
+struct ProjectPaths {
+    root: PathBuf,
+    specs: PathBuf,
+    changes: PathBuf,
+    archive: PathBuf,
+    _bibliographies: PathBuf,
+}
+
+fn resolve_project_paths() -> Result<ProjectPaths, String> {
+    let root = find_project_root()
+        .ok_or_else(|| "no typspec project found. Run `typspec init` first.".to_string())?;
+    Ok(ProjectPaths {
+        specs: root.join("typspec/specs"),
+        changes: root.join("typspec/changes"),
+        archive: root.join("typspec/archive"),
+        _bibliographies: root.join("typspec/bibliographies"),
+        root,
+    })
+}
+
+/// Find the project root containing `typspec/typspec.json{c}` by walking up.
+/// Returns `None` if not found.
+fn find_project_root() -> Option<PathBuf> {
+    let home = std::env::var_os("HOME").map(PathBuf::from);
+    let mut current = std::env::current_dir().ok()?;
+
+    loop {
+        for name in &["typspec/typspec.jsonc", "typspec/typspec.json"] {
+            if current.join(name).exists() {
+                return Some(current);
+            }
+        }
+        // Stop at git root
+        if current.join(".git").exists() {
+            return None;
+        }
+        // Stop at home
+        if let Some(ref h) = home {
+            if current == *h {
+                return None;
+            }
+        }
+        // Stop at filesystem root
+        if !current.pop() {
+            return None;
+        }
+    }
 }
 
 /// Generate AI agent skills based on --tools flag.

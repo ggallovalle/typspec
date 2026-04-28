@@ -5,21 +5,11 @@
 
 // ── Document templates ─────────────────────────
 
-#let spec(it, title: none, bibliography: none) = {
+#let spec(it, title: none) = {
   set document(title: title)
   show: doc => page(margin: (x: 2.5cm, y: 2cm), doc)
   set heading(numbering: "1.1")
   set text(size: 11pt)
-  if bibliography != none {
-    let bs = if type(bibliography) == "array" {
-      bibliography
-    } else {
-      (bibliography,)
-    }
-    for b in bs {
-      bibliography(b, style: "iso-690-numeric")
-    }
-  }
   it
 }
 

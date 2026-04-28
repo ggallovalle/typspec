@@ -13,26 +13,22 @@ This document specifies the public API of the `@preview/typspec` Typst module.
 #requirement("spec-template", priority: "shall")[
   The `spec` function SHALL serve as a document-level show rule for specification documents.
 
-  When applied via `#show: spec.with(title: ..., bibliography: ...)`, it SHALL:
+  When applied via `#show: spec.with(title: ...)`, it SHALL:
   - Set up page layout and typography appropriate for a specification document.
-  - Configure bibliography rendering from Hayagriva `.yaml` files.
   - Collect all `#requirement` and `#scenario` metadata into a structured index.
 
-  The `bibliography` parameter passes through to Typst's `#bibliography()` which uses the Hayagriva YAML format. The citation style is set internally by the template.
+  Bibliography files SHALL be placed in `typspec/bibliographies/` and included
+  via Typst's native `#bibliography()` function at the end of the document.
 
   #scenario("spec with title only",
     when: [`#show: spec.with(title: [My Spec])`],
     then: [document title set, requirements render with proper hierarchy],
   )
 
-  #scenario("spec with bibliography",
-    when: [`#show: spec.with(title: [My Spec], bibliography: "refs.yaml")`],
-    then: [bibliography sourced from Hayagriva YAML, `@key` citations resolve],
-  )
-
-  #scenario("multiple bibliographies",
-    when: [`bibliography: ("refs.yaml", "extra.yaml")`],
-    then: [all Hayagriva files loaded and available for citation],
+  #scenario("bibliography included directly",
+    given: [`typspec/bibliographies/refs.yaml` exists],
+    when: [user adds `#bibliography("typspec/bibliographies/refs.yaml")` at end of document],
+    then: [citations resolve, CLI passes `--root` to project root so path resolves],
   )
 ]
 

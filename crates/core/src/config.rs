@@ -19,31 +19,6 @@ pub struct ProjectConfig {
     pub version: Option<String>,
 }
 
-/// Configurable directory paths for specs, changes, and archive.
-#[derive(Debug, Clone, Deserialize)]
-pub struct PathsConfig {
-    #[serde(default = "default_specs_dir")]
-    pub specs: String,
-    #[serde(default = "default_changes_dir")]
-    pub changes: String,
-    #[serde(default = "default_archive_dir")]
-    pub archive: String,
-}
-
-impl Default for PathsConfig {
-    fn default() -> Self {
-        Self {
-            specs: default_specs_dir(),
-            changes: default_changes_dir(),
-            archive: default_archive_dir(),
-        }
-    }
-}
-
-fn default_specs_dir() -> String { "typspec/specs".to_string() }
-fn default_changes_dir() -> String { "typspec/changes".to_string() }
-fn default_archive_dir() -> String { "typspec/archive".to_string() }
-
 /// The full `typspec.jsonc` schema.
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct TypspecConfig {
@@ -54,27 +29,18 @@ pub struct TypspecConfig {
     pub project: Option<ProjectConfig>,
 
     #[serde(default)]
-    pub paths: Option<PathsConfig>,
-
-    #[serde(default)]
     pub workspaces: HashMap<String, WorkspaceEntry>,
 
     #[serde(default)]
     pub exports: HashMap<String, String>,
 
     #[serde(default)]
-    pub bibliographies: Vec<String>,
-
-    #[serde(default)]
     pub context: Option<HashMap<String, String>>,
 }
 
-/// Config filenames in discovery order (first-match wins within a directory).
+/// Config filenames — only the canonical path is supported.
 const CONFIG_FILENAMES: &[&str] = &[
-    "typspec.jsonc", "typspec.json",
-    "typspec/config.jsonc", "typspec/config.json",
-    ".config/typspec.jsonc", ".config/typspec.json",
-    ".config/typspec/typspec.jsonc", ".config/typspec/typspec.json",
+    "typspec/typspec.jsonc", "typspec/typspec.json",
 ];
 
 /// Local override filenames (git-ignored, higher precedence).
@@ -128,13 +94,27 @@ pub fn load_config(cwd: &Path) -> Result<TypspecConfig, String> {
     Ok(merged)
 }
 
-/// Walk up from `start` to the filesystem root.
+/// Walk up from `start`, stopping at git root or home directory.
 fn walk_up_dirs(start: &Path) -> Result<Vec<PathBuf>, String> {
     let mut dirs = Vec::new();
+    let home = std::env::var_os("HOME").map(PathBuf::from);
     let mut current = Some(start.to_path_buf());
 
     while let Some(dir) = current {
         dirs.push(dir.clone());
+
+        // Stop at git root
+        if dir.join(".git").exists() {
+            break;
+        }
+
+        // Stop at home directory
+        if let Some(ref home) = home {
+            if dir == *home {
+                break;
+            }
+        }
+
         current = dir.parent().map(|p| p.to_path_buf());
     }
 
@@ -221,7 +201,6 @@ fn merge_configs(base: &mut TypspecConfig, child: TypspecConfig) {
     if child.project.is_some() { base.project = child.project; }
     if !child.workspaces.is_empty() { base.workspaces = child.workspaces; }
     if !child.exports.is_empty() { base.exports = child.exports; }
-    if !child.bibliographies.is_empty() { base.bibliographies = child.bibliographies; }
     if child.context.is_some() { base.context = child.context; }
 }
 
