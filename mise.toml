@@ -1,6 +1,10 @@
 [tasks.typspec]
 run = "cargo run -p typspec -- $@"
 
+[tasks.install]
+run = "cargo install --path crates/cli --force"
+description = "Install the typspec CLI into the system via cargo install"
+
 [shell_alias]
 goroot = "cd {{config_root}}"
 "go.config" = "cd {{config_root}}/.config"
