@@ -1,9 +1,29 @@
-# [tasks.typspec]
-# run = "cargo run -p typspec -- $@"
+[tools]
+rust = "1.95.0"
+
+[tasks.typspec]
+run = "cargo run -p typspec -- $@"
+description = "Run the typspec CLI during development"
 
 [tasks.install]
 run = "cargo install --path crates/cli --force"
 description = "Install the typspec CLI into the system via cargo install"
+
+[tasks.ci-test]
+run = ["cargo test", "cargo build"]
+description = "Run tests and verify build"
+
+[tasks.ci-build]
+run = "cargo build --release"
+description = "Build release binary"
+
+[tasks.ci-release]
+run = "cargo build --release"
+description = "Build release binary for GitHub Release (assets assembled by CI)"
+
+[tasks.publish]
+run = "cargo publish -p typspec"
+description = "Publish typspec to crates.io"
 
 [shell_alias]
 goroot = "cd {{config_root}}"

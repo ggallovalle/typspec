@@ -168,23 +168,23 @@ Out of scope:
 = Tasks
 
 #task_group("1. Merge core into CLI crate", (
-  task([git mv crates/core/src/ crates/cli/src/core/], done: false, labels: ("cli",)),
-  task([Remove typspec-core path dep from cli/Cargo.toml, absorb its deps], done: false, labels: ("cli",)),
-  task([Update workspace members: remove typspec-core from root Cargo.toml], done: false, labels: ("build",)),
-  task([Replace all typspec_core:: with crate:: in main.rs], done: false, labels: ("cli",)),
-  task([Delete crates/core/ directory], done: false, labels: ("build",)),
+  task([git mv crates/core/src/ crates/cli/src/core/], done: true, labels: ("cli",)),
+  task([Remove typspec-core path dep from cli/Cargo.toml, absorb its deps], done: true, labels: ("cli",)),
+  task([Update workspace members: remove typspec-core from root Cargo.toml], done: true, labels: ("build",)),
+  task([Replace all typspec_core:: with crate:: in main.rs], done: true, labels: ("cli",)),
+  task([Delete crates/core/ directory], done: true, labels: ("build",)),
 ))
 
 #task_group("2. Fix publish readiness", (
-  task([Add license, repository, homepage, keywords, categories to Cargo.toml], done: false, labels: ("build",)),
-  task([Verify cargo publish --dry-run passes with no warnings], done: false, labels: ("tests",)),
-  task([Run cargo build with no warnings], done: false, labels: ("tests",)),
+  task([Add license, repository, homepage, keywords, categories to Cargo.toml], done: true, labels: ("build",)),
+  task([Verify cargo publish --dry-run passes with no warnings], done: true, labels: ("tests",)),
+  task([Run cargo build with no warnings], done: true, labels: ("tests",)),
 ))
 
 #task_group("3. Set up CI and mise tasks", (
-  task([Create mise tasks: ci-test, ci-build, ci-release, and publish], done: false, labels: ("build",)),
-  task([Create .github/workflows/ci.yml calling mise run ci-test / ci-release], done: false, labels: ("ci",)),
-  task([Add CARGO_REGISTRY_TOKEN secret setup instructions], done: false, labels: ("docs",)),
+  task([Create mise tasks: ci-test, ci-build, ci-release, and publish], done: true, labels: ("build",)),
+  task([Create .github/workflows/ci.yml calling mise run ci-test / ci-release], done: true, labels: ("ci",)),
+  task([Add CARGO_REGISTRY_TOKEN secret setup instructions], done: true, labels: ("docs",)),
 ))
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
