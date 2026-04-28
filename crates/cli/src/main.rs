@@ -151,7 +151,9 @@ fn cmd_new(kind: &NewKind, json: bool) {
 }
 
 fn create_spec(name: &str, json: bool) {
-    let path = PathBuf::from("typspec/specs").join(format!("{}.typ", name));
+    let (spec_dir, _, _) = load_paths();
+    let spec_file = format!("{}.typ", name);
+    let path = spec_dir.join(&spec_file);
 
     let template = format!(
         r#"#show: spec.with(title: "{}")
@@ -184,7 +186,9 @@ fn create_spec(name: &str, json: bool) {
 }
 
 fn create_change(name: &str, json: bool) {
-    let path = PathBuf::from("typspec/changes").join(format!("{}.typ", name));
+    let (_, changes_dir, _) = load_paths();
+    let change_file = format!("{}.typ", name);
+    let path = changes_dir.join(&change_file);
 
     let template = format!(
         r#"#show: change.with(id: "{}")
@@ -240,11 +244,8 @@ What is and isn't changing.
 }
 
 fn cmd_list(specs: bool, json: bool) {
-    let dir = if specs {
-        PathBuf::from("typspec/specs")
-    } else {
-        PathBuf::from("typspec/changes")
-    };
+    let (specs_dir, changes_dir, _) = load_paths();
+    let dir = if specs { specs_dir } else { changes_dir };
 
     let entries: Vec<_> = match std::fs::read_dir(&dir) {
         Ok(entries) => entries
@@ -272,16 +273,17 @@ fn cmd_list(specs: bool, json: bool) {
 }
 
 fn cmd_status(name: &str, json: bool) {
-    let spec_path = PathBuf::from("typspec/specs").join(format!("{}.typ", name));
-    let change_path = PathBuf::from("typspec/changes").join(format!("{}.typ", name));
+    let (specs_dir, changes_dir, _) = load_paths();
+    let spec_path = specs_dir.join(format!("{}.typ", name));
+    let change_path = changes_dir.join(format!("{}.typ", name));
 
     let target = if spec_path.exists() {
         spec_path
     } else if change_path.exists() {
         change_path.clone()
     } else {
-        eprintln!("error: '{}' not found in typspec/specs/ or typspec/changes/", name);
-        suggest_name(name, &[PathBuf::from("typspec/specs"), PathBuf::from("typspec/changes")]);
+        eprintln!("error: '{}' not found in {}/ or {}/", name, specs_dir.display(), changes_dir.display());
+        suggest_name(name, &[specs_dir.clone(), changes_dir.clone()]);
         std::process::exit(1);
     };
 
@@ -374,10 +376,8 @@ fn cmd_render(path: Option<&Path>, watch: bool) {
 }
 
 fn find_latest_typ_file() -> PathBuf {
-    let candidates = [
-        PathBuf::from("typspec/specs"),
-        PathBuf::from("typspec/changes"),
-    ];
+    let (specs_dir, changes_dir, _) = load_paths();
+    let candidates = [specs_dir, changes_dir];
     let mut latest: Option<PathBuf> = None;
     let mut latest_time = std::time::SystemTime::UNIX_EPOCH;
 
@@ -405,11 +405,12 @@ fn find_latest_typ_file() -> PathBuf {
 }
 
 fn cmd_archive(name: &str, _yes: bool, json: bool) {
-    let change_path = PathBuf::from("typspec/changes").join(format!("{}.typ", name));
+    let (specs_dir, changes_dir, archive_dir) = load_paths();
+    let change_path = changes_dir.join(format!("{}.typ", name));
 
     if !change_path.exists() {
         eprintln!("error: change '{}' not found at {}", name, change_path.display());
-        suggest_name(name, &[PathBuf::from("typspec/changes")]);
+        suggest_name(name, &[changes_dir.clone()]);
         std::process::exit(1);
     }
 
@@ -441,14 +442,11 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     // Extract requirement bodies from the change file source
     if let Ok(change_text) = std::fs::read_to_string(&change_path) {
         for op in &mut delta_ops {
-            if matches!(op.action, typspec_core::surgery::DeltaAction::Added) && op.content.is_none() {
+            if op.content.is_none() {
                 if let Some(body) = typspec_core::surgery::extract_requirement_body(&change_text, &op.id) {
-                    // Wrap the body in a requirement call
-                    // Find the priority from metadata (it's stored in the DeltaOp too)
-                    let priority = "shall"; // default, the extracted body keeps the original
                     op.content = Some(format!(
-                        "#requirement(\"{}\", priority: \"{}\")[\n{}\n]\n",
-                        op.id, priority, body
+                        "#requirement(\"{}\", priority: \"shall\")[\n{}\n]\n",
+                        op.id, body
                     ));
                 }
             }
@@ -456,18 +454,16 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     }
 
     // Check for git conflicts — warn if spec files have uncommitted changes
-    let spec_dir = PathBuf::from("typspec/specs");
     for spec_name in &modifies {
-        let spec_file = spec_dir.join(format!("{}.typ", spec_name));
+        let spec_file = specs_dir.join(format!("{}.typ", spec_name));
         if spec_file.exists() {
             check_git_conflict(&spec_file, json);
         }
     }
 
     // Group delta ops by target spec using modifies field
-    let spec_dir = PathBuf::from("typspec/specs");
     let (spec_deltas, validation_errors) = typspec_core::group_delta_ops_by_spec(
-        &delta_ops, &modifies, &spec_dir,
+        &delta_ops, &modifies, &specs_dir,
     );
 
     // Print validation errors
@@ -507,7 +503,6 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     }
 
     // Move change to archive
-    let archive_dir = PathBuf::from("typspec/archive");
     std::fs::create_dir_all(&archive_dir).expect("failed to create archive dir");
 
     let today = today_date();
@@ -619,6 +614,13 @@ fn suggest_name(input: &str, dirs: &[PathBuf]) {
         let joined = suggestions.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join("' or '");
         eprintln!("  tip: a similar name exists: {}?", joined);
     }
+}
+
+/// Load configured paths from typspec config, with defaults.
+fn load_paths() -> (PathBuf, PathBuf, PathBuf) {
+    let cfg = typspec_core::config::load_config(Path::new(".")).unwrap_or_default();
+    let r = typspec_core::resolve_paths(&cfg, Path::new("."));
+    (r.specs_dir, r.changes_dir, r.archive_dir)
 }
 
 /// Move a file using `git mv` if it's tracked by git, else `std::fs::rename`.

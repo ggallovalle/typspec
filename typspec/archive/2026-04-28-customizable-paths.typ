@@ -69,7 +69,7 @@ Out of scope:
 
 == ADDED Requirements
 
-#requirement("config-paths-section", priority: "shall", action: "added")[
+#requirement("config-paths-section", priority: "shall", action: "added", modifies: "config")[
   The `typspec.jsonc` schema SHALL support a `paths` section with optional
   `specs`, `changes`, and `archive` string fields.
 
@@ -105,7 +105,7 @@ Out of scope:
   )
 ]
 
-#requirement("cli-uses-configured-paths", priority: "shall", action: "added")[
+#requirement("cli-uses-configured-paths", priority: "shall", action: "added", modifies: "cli")[
   All CLI commands SHALL resolve spec, change, and archive directories from
   config rather than using hardcoded paths.
 
@@ -138,7 +138,7 @@ Out of scope:
 
 == MODIFIED Requirements
 
-#requirement("config-discovery", action: "modified")[
+#requirement("config-discovery", action: "modified", modifies: "cli")[
   Path resolution SHALL be relative to the config file's directory, not CWD.
   This ensures consistent behavior regardless of which subdirectory the user
   runs commands from.

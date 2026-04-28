@@ -210,13 +210,9 @@ This document specifies the commands and behavior of the `typspec` CLI.
 == Command Resolution
 
 #requirement("config-discovery", priority: "shall")[
-  The CLI SHALL discover the nearest `typspec.jsonc` by walking up from the current directory.
-
-  #scenario("cli outside project",
-    given: [no `typspec.jsonc` in any parent directory],
-    when: [any project command runs],
-    then: [CLI errors suggesting `typspec init`],
-  )
+Path resolution SHALL be relative to the config file's directory, not CWD.
+  This ensures consistent behavior regardless of which subdirectory the user
+  runs commands from.
 ]
 #requirement("fuzzy-name-matching", priority: "shall")[
 The `status` and `archive` commands SHALL perform fuzzy matching when a
@@ -406,5 +402,35 @@ When archiving a change, the CLI SHALL use `git mv` to move the file
     given: [git is installed but `git mv` fails for some reason],
     when: [archive runs],
     then: [error is reported, archive continues with `fs::rename` as fallback],
+  )
+]
+#requirement("cli-uses-configured-paths", priority: "shall")[
+All CLI commands SHALL resolve spec, change, and archive directories from
+  config rather than using hardcoded paths.
+
+  The `init` command SHALL create directories at the configured paths.
+
+  #scenario("init respects configured paths",
+    given: [config with `paths.specs = "docs/specs"`],
+    when: [`typspec init`],
+    then: [creates `docs/specs/` instead of `typspec/specs/`],
+  )
+
+  #scenario("list reads from configured paths",
+    given: [config with `paths.changes = "proposals"`],
+    when: [`typspec list`],
+    then: [reads from `proposals/` directory],
+  )
+
+  #scenario("archive uses configured archive dir",
+    given: [config with `paths.archive = "completed"`],
+    when: [`typspec archive my-change`],
+    then: [change moved to `completed/`],
+  )
+
+  #scenario("status resolves from configured paths",
+    given: [config with `paths.specs = "specs"`, same file exists],
+    when: [`typspec status module-api`],
+    then: [reads `specs/module-api.typ`],
   )
 ]

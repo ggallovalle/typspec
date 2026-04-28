@@ -19,6 +19,31 @@ pub struct ProjectConfig {
     pub version: Option<String>,
 }
 
+/// Configurable directory paths for specs, changes, and archive.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PathsConfig {
+    #[serde(default = "default_specs_dir")]
+    pub specs: String,
+    #[serde(default = "default_changes_dir")]
+    pub changes: String,
+    #[serde(default = "default_archive_dir")]
+    pub archive: String,
+}
+
+impl Default for PathsConfig {
+    fn default() -> Self {
+        Self {
+            specs: default_specs_dir(),
+            changes: default_changes_dir(),
+            archive: default_archive_dir(),
+        }
+    }
+}
+
+fn default_specs_dir() -> String { "typspec/specs".to_string() }
+fn default_changes_dir() -> String { "typspec/changes".to_string() }
+fn default_archive_dir() -> String { "typspec/archive".to_string() }
+
 /// The full `typspec.jsonc` schema.
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct TypspecConfig {
@@ -27,6 +52,9 @@ pub struct TypspecConfig {
 
     #[serde(default)]
     pub project: Option<ProjectConfig>,
+
+    #[serde(default)]
+    pub paths: Option<PathsConfig>,
 
     #[serde(default)]
     pub workspaces: HashMap<String, WorkspaceEntry>,

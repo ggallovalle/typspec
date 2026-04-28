@@ -92,7 +92,13 @@ fn apply_ops(node: &SyntaxNode, ops: &[DeltaOp]) -> (SyntaxNode, usize) {
                     DeltaAction::Modified | DeltaAction::Added => {
                         if let Some(content) = &op.content {
                             let parsed = typst_syntax::parse(content);
-                            (parsed, 1)
+                            // Extract the first FuncCall from the parsed tree,
+                            // since parse returns a Markup wrapper
+                            let replacement = parsed.children()
+                                .find(|c| c.kind() == SyntaxKind::FuncCall)
+                                .cloned()
+                                .unwrap_or(parsed);
+                            (replacement, 1)
                         } else {
                             (node.clone(), 0)
                         }
@@ -160,31 +166,46 @@ fn collect_task_bodies(node: &SyntaxNode, bodies: &mut Vec<Option<String>>) {
 }
 
 fn find_task_body_child(node: &SyntaxNode) -> Option<String> {
-    node.children()
-        .find(|c| c.kind() == SyntaxKind::ContentBlock)
-        .map(|cb| extract_body_text(cb))
+    find_content_block_in_children(node)
 }
 
 fn find_task_body_in_args(node: &SyntaxNode) -> Option<String> {
     node.children()
         .find(|c| c.kind() == SyntaxKind::Args)
-        .and_then(|args| {
-            args.children()
-                .find(|c| c.kind() == SyntaxKind::ContentBlock)
-                .map(|cb| extract_body_text(cb))
-        })
+        .and_then(|args| find_content_block_in_children(args))
 }
 
-fn extract_body_text(cb: &SyntaxNode) -> String {
+/// Find a ContentBlock child node and extract its inner text.
+fn find_content_block_in_children(node: &SyntaxNode) -> Option<String> {
+    for child in node.children() {
+        if child.kind() == SyntaxKind::ContentBlock {
+            return content_block_to_string(child);
+        }
+    }
+    // Also check inside Args (content block is after RightParen in some cases)
+    for child in node.children() {
+        if child.kind() == SyntaxKind::Args {
+            for arg in child.children() {
+                if arg.kind() == SyntaxKind::ContentBlock {
+                    return content_block_to_string(arg);
+                }
+            }
+        }
+    }
+    None
+}
+
+fn content_block_to_string(cb: &SyntaxNode) -> Option<String> {
     let text = cb.clone().into_text().to_string();
     let inner = text.strip_prefix('[')
         .and_then(|s| s.strip_suffix(']'))
         .unwrap_or(&text);
     let trimmed = inner.trim();
+    if trimmed.is_empty() { return None; }
     if trimmed.len() > 80 {
-        format!("{}...", &trimmed[..80])
+        Some(format!("{}...", &trimmed[..80]))
     } else {
-        trimmed.to_string()
+        Some(trimmed.to_string())
     }
 }
 
@@ -215,23 +236,31 @@ fn extract_body_from_node(node: &SyntaxNode, id: &str) -> Option<String> {
                 return recurse_children(node, id);
             }
 
-            // Find the body content block: it's a ContentBlock child of the FuncCall
-            for child in node.children() {
-                if child.kind() == SyntaxKind::ContentBlock {
-                    let body_text = child.clone().into_text().to_string();
-                    if let Some(inner) = body_text.strip_prefix('[')
-                        .and_then(|s| s.strip_suffix(']')) {
-                        return Some(inner.trim().to_string());
-                    }
-                    if body_text.len() >= 2 {
-                        return Some(body_text[1..body_text.len()-1].trim().to_string());
-                    }
-                }
+            // Find the body content block and extract full body text
+            let body_text = node.children()
+                .find(|c| c.kind() == SyntaxKind::Args)
+                .and_then(|args| extract_full_body_from_args(args));
+            if let Some(body) = body_text {
+                return Some(body);
             }
         }
     }
 
     recurse_children(node, id)
+}
+
+/// Extract full (untruncated) body text from the Args node's ContentBlock.
+fn extract_full_body_from_args(args: &SyntaxNode) -> Option<String> {
+    args.children()
+        .find(|c| c.kind() == SyntaxKind::ContentBlock)
+        .and_then(|cb| {
+            let text = cb.clone().into_text().to_string();
+            let inner = text.strip_prefix('[')
+                .and_then(|s| s.strip_suffix(']'))
+                .unwrap_or(&text);
+            let trimmed = inner.trim();
+            if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+        })
 }
 
 /// Recurse into children to find the function call.

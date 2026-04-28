@@ -179,3 +179,38 @@ This document specifies the schema and semantics of typspec config files.
 #requirement("test-body-extract", priority: "shall")[
 something else
 ]
+#requirement("config-paths-section", priority: "shall")[
+The `typspec.jsonc` schema SHALL support a `paths` section with optional
+  `specs`, `changes`, and `archive` string fields.
+
+  ```jsonc
+  {
+    "paths": {
+      "specs": "docs/specs",
+      "changes": "docs/changes",
+      "archive": "docs/archive"
+    }
+  }
+  ```
+
+  All paths SHALL be relative to the config file's directory. Each field
+  defaults to its current hardcoded value when omitted.
+
+  #scenario("all paths customized",
+    given: [config with `paths.specs = "docs/specs"`, `paths.changes = "docs/changes"`, `paths.archive = "docs/archive"`],
+    when: [CLI creates or reads files],
+    then: [uses the configured paths instead of defaults],
+  )
+
+  #scenario("partial override",
+    given: [config with only `paths.specs = "my-specs"`],
+    when: [CLI runs],
+    then: [specs read from `my-specs/`, changes and archive use defaults],
+  )
+
+  #scenario("no paths config",
+    given: [config without a `paths` section],
+    when: [CLI runs],
+    then: [defaults used: `typspec/specs/`, `typspec/changes/`, `typspec/archive/`],
+  )
+]
