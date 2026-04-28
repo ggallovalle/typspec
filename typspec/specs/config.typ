@@ -50,12 +50,20 @@ checked in order (first found in a directory wins):
 <dir>/typspec.json
 <dir>/typspec/config.jsonc
 <dir>/typspec/config.json
+<dir>/.config/typspec.jsonc
+<dir>/.config/typspec.json
+<dir>/.config/typspec/typspec.jsonc
+<dir>/.config/typspec/typspec.json
 
 # Local overrides (git-ignored)
 <dir>/typspec.local.jsonc
 <dir>/typspec.local.json
 <dir>/typspec/config.local.jsonc
 <dir>/typspec/config.local.json
+<dir>/.config/typspec.local.jsonc
+<dir>/.config/typspec.local.json
+<dir>/.config/typspec/typspec.local.jsonc
+<dir>/.config/typspec/typspec.local.json
 
 # Environment-specific (when TYPSPEC_ENV is set)
 <dir>/typspec.<env>.jsonc
@@ -186,9 +194,9 @@ The `workspaces` section SHALL declare the specs that this package references. E
 
 Each workspace entry SHALL have exactly one location type:
 
-- **`path`**: A relative filesystem path from the config file's directory.
-- **`git`**: Requires a `tag` or `commit` field, and an optional `subpath`. The repository is cloned at the specified ref, and the `subpath` points to the typspec root within it.
-- **`registry`**: Requires `package` and `version` (semver range). Future — fetches from a registry.
+- `path`: A relative filesystem path from the config file's directory.
+- `git`: Requires a `tag` or `commit` field, and an optional `subpath`. The repository is cloned at the specified ref, and the `subpath` points to the typspec root within it.
+- `registry`: Requires `package` and `version` (semver range). Future — fetches from a registry.
 
 ==== Scenario: path workspace
 
