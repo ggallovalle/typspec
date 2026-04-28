@@ -188,6 +188,7 @@ The `task` function SHALL define a single actionable item. The `task-group` func
 - `done` (named, bool, optional) — whether the task is complete. Default: `false`.
 - `assignee` (named, string, optional) — who is responsible. Any identifier: GitHub username, person's name, `"ai"`, `"human"`, etc. No default.
 - `labels` (named, array of strings, optional) — free-form tags for filtering. Example: `("cli", "tests")`.
+- `refs` (named, array of strings, optional) — external reference URLs or IDs. Example: `("https://github.com/org/repo/issues/42", "JIRA-123")`.
 
 ==== Scenario: incomplete task
 
