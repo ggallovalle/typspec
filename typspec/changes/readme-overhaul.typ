@@ -72,11 +72,11 @@ Out of scope:
 = Tasks
 
 #task_group("1. Write README", (
-  task([Write hero section: problem statement, typspec solution, links to inspiration], done: false, labels: ("docs",)),
-  task([Write installation section: cargo install, binstall, mise, from source], done: false, labels: ("docs",)),
-  task([Write quickstart section: init → status → change → archive], done: false, labels: ("docs",)),
-  task([Add badges: crates.io, CI, license], done: false, labels: ("docs",)),
-  task([Update repo structure diagram to match new layout], done: false, labels: ("docs",)),
+  task([Write hero section: problem statement, typspec solution, links to inspiration], done: true, labels: ("docs",)),
+  task([Write installation section: cargo install, binstall, mise, from source], done: true, labels: ("docs",)),
+  task([Write quickstart section: init → status → change → archive], done: true, labels: ("docs",)),
+  task([Add badges: crates.io, CI, license], done: true, labels: ("docs",)),
+  task([Update repo structure diagram to match new layout], done: true, labels: ("docs",)),
 ))
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
