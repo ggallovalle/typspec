@@ -12,8 +12,20 @@ The `spec` function SHALL serve as a document-level show rule for specification 
 
 When applied via `#show: spec.with(title: ..., bibliography: ...)`, it SHALL:
 - Set up page layout and typography appropriate for a specification document.
-- Configure bibliography rendering from a `.yaml` file.
+- Configure bibliography rendering from Hayagriva `.yaml` files (see [Hayagriva File Format](https://github.com/typst/hayagriva/blob/main/docs/file-format.md)).
 - Collect all `#requirement` and `#scenario` metadata into a structured index.
+
+The `bibliography` parameter passes through directly to Typst's native
+`#bibliography()` function, which uses the Hayagriva YAML format. The
+parameter accepts the same types as `#bibliography()`: a string path,
+an array of paths, or a dictionary with a `style` key:
+
+```
+#show: spec.with(
+  title: [My Spec],
+  bibliography: ("refs.yaml", style: "iso-690-numeric"),
+)
+```
 
 ==== Scenario: spec with title only
 
@@ -24,13 +36,18 @@ When applied via `#show: spec.with(title: ..., bibliography: ...)`, it SHALL:
 ==== Scenario: spec with title and bibliography
 
 - WHEN user writes `#show: spec.with(title: [My Spec], bibliography: "refs.yaml")`
-- THEN the bibliography is sourced from `refs.yaml`
+- THEN the bibliography is sourced from Hayagriva YAML in `refs.yaml`
 - AND `@cite` references resolve correctly
+
+==== Scenario: bibliography with style
+
+- WHEN user provides `bibliography: ("refs.yaml", style: "iso-690-numeric")`
+- THEN the Hayagriva data is rendered with ISO-690 numeric citation style
 
 ==== Scenario: multiple bibliographies
 
 - WHEN user provides `bibliography: ("refs.yaml", "extra.yaml")`
-- THEN all provided bibliography files are loaded and available for citation
+- THEN all provided Hayagriva files are loaded and available for citation
 
 === change Document Template
 
