@@ -510,7 +510,58 @@ fn cmd_validate(path: Option<&Path>) {
 }
 
 fn cmd_install() {
-    eprintln!("info: `typspec install` is not yet implemented");
+    // Load config and find git workspace dependencies
+    match typspec_core::config::load_config(std::path::Path::new(".")) {
+        Ok(cfg) => {
+            let mut found = false;
+            for (name, entry) in &cfg.workspaces {
+                match entry {
+                    typspec_core::config::WorkspaceEntry::Git { git, tag, commit, subpath: _ } => {
+                        found = true;
+                        let cache_dir = PathBuf::from(".typspec")
+                            .join("cache")
+                            .join("workspaces")
+                            .join(name);
+
+                        if cache_dir.exists() {
+                            println!("  ✓ {} (cached)", name);
+                            continue;
+                        }
+
+                        let ref_spec = tag.as_ref()
+                            .map(|t| format!("refs/tags/{}", t))
+                            .or_else(|| commit.clone());
+
+                        std::fs::create_dir_all(&cache_dir).expect("failed to create cache dir");
+
+                        let mut cmd = std::process::Command::new("git");
+                        cmd.args(["clone", "--depth", "1"]);
+                        if let Some(ref_spec) = &ref_spec {
+                            if tag.is_some() {
+                                cmd.arg("--branch");
+                            }
+                            cmd.arg(ref_spec);
+                        }
+                        cmd.arg(git).arg(&cache_dir);
+
+                        let status = cmd.status().expect("failed to run git clone");
+                        if status.success() {
+                            println!("  ✓ {} cloned to {}", name, cache_dir.display());
+                        } else {
+                            eprintln!("  ✗ failed to clone {}", name);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if !found {
+                println!("No git workspace dependencies found in config.");
+            }
+        }
+        Err(e) => {
+            eprintln!("error: failed to load config: {}", e);
+        }
+    }
 }
 
 /// Check if a spec file has been modified since the last commit.

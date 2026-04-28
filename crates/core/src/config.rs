@@ -67,16 +67,17 @@ const GLOBAL_FILENAMES: &[&str] = &[
 pub fn load_config(cwd: &Path) -> Result<TypspecConfig, String> {
     // Walk up from cwd collecting project configs
     let mut merged = TypspecConfig::default();
+    let mut seen = std::collections::HashSet::new();
 
     if let Ok(dirs) = walk_up_dirs(cwd) {
         for dir in dirs {
-            // Load config files in order, merge
             for filename in CONFIG_FILENAMES.iter().chain(LOCAL_FILENAMES.iter()) {
                 let path = dir.join(filename);
-                if path.exists() {
-                    match parse_config_file(&path) {
+                let canonical = std::fs::canonicalize(&path).unwrap_or(path);
+                if canonical.exists() && seen.insert(canonical.clone()) {
+                    match parse_config_file(&canonical) {
                         Ok(cfg) => merge_configs(&mut merged, cfg),
-                        Err(e) => eprintln!("warning: failed to parse {}: {}", path.display(), e),
+                        Err(e) => eprintln!("warning: failed to parse {}: {}", canonical.display(), e),
                     }
                 }
             }
@@ -122,9 +123,12 @@ fn parse_config_file(path: &Path) -> Result<TypspecConfig, String> {
         .unwrap_or(false);
 
     if is_jsonc {
-        // Strip comments and trailing commas for JSONC
-        let cleaned = strip_jsonc_comments(&text);
-        serde_json::from_str(&cleaned)
+        // Try strict JSON first, fall back to JSONC with comments stripped
+        serde_json::from_str(&text)
+            .or_else(|_| {
+                let cleaned = strip_jsonc_comments(&text);
+                serde_json::from_str(&cleaned)
+            })
             .map_err(|e| format!("parse error in {}: {}", path.display(), e))
     } else {
         serde_json::from_str(&text)
@@ -208,6 +212,18 @@ mod tests {
         let result = strip_jsonc_comments(input);
         let parsed: TypspecConfig = serde_json::from_str(&result).unwrap();
         assert!(parsed.project.is_none());
+    }
+
+    #[test]
+    fn test_parse_actual_config_content() {
+        let json = r#"{
+  "$schema": "https://typspec.dev/schemas/v1.json",
+  "typspec": "0.1.0",
+  "project": { "name": "typspec", "version": "0.1.0" },
+  "context": { "tech_stack": "Rust", "domain": "Specs" }
+}"#;
+        let cfg: TypspecConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(cfg.project.unwrap().name, "typspec");
     }
 
     #[test]
