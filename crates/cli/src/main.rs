@@ -421,7 +421,24 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
         .unwrap_or_default();
 
     // Find spec-delta requirements
-    let delta_ops = typspec_core::metadata_to_delta_ops(&entries);
+    let mut delta_ops = typspec_core::metadata_to_delta_ops(&entries);
+
+    // Extract requirement bodies from the change file source
+    if let Ok(change_text) = std::fs::read_to_string(&change_path) {
+        for op in &mut delta_ops {
+            if matches!(op.action, typspec_core::surgery::DeltaAction::Added) && op.content.is_none() {
+                if let Some(body) = typspec_core::surgery::extract_requirement_body(&change_text, &op.id) {
+                    // Wrap the body in a requirement call
+                    // Find the priority from metadata (it's stored in the DeltaOp too)
+                    let priority = "shall"; // default, the extracted body keeps the original
+                    op.content = Some(format!(
+                        "#requirement(\"{}\", priority: \"{}\")[\n{}\n]\n",
+                        op.id, priority, body
+                    ));
+                }
+            }
+        }
+    }
 
     // Check for git conflicts — warn if spec files have uncommitted changes
     let spec_dir = PathBuf::from("typspec/specs");

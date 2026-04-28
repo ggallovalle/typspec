@@ -85,13 +85,7 @@ pub fn metadata_to_delta_ops(entries: &[serde_json::Value]) -> Vec<DeltaOp> {
         let priority = entry["priority"].as_str().unwrap_or("shall");
 
         let content = match action {
-            DeltaAction::Added => {
-                // Generate a minimal requirement stub from metadata
-                Some(format!(
-                    "#requirement(\"{}\", priority: \"{}\")[\n  TODO: add description\n]\n",
-                    id, priority
-                ))
-            }
+            DeltaAction::Added => None,
             DeltaAction::Modified => None,
             DeltaAction::Removed => None,
         };

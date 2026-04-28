@@ -176,3 +176,6 @@ This document specifies the schema and semantics of typspec config files.
 
   If the CLI version is less than the declared version, the CLI SHALL error with an upgrade suggestion.
 ]
+#requirement("test-body-extract", priority: "shall")[
+something else
+]

@@ -120,7 +120,70 @@ fn apply_ops(node: &SyntaxNode, ops: &[DeltaOp]) -> (SyntaxNode, usize) {
     }
 }
 
-/// Check if a FuncCall node matches any operation's requirement ID.
+/// Extract the body content block `[...]` from a `#requirement("id", ...)` call
+/// in the given source text. Returns `None` if the requirement is not found.
+pub fn extract_requirement_body(source_text: &str, id: &str) -> Option<String> {
+    let root = typst_syntax::parse(source_text);
+    extract_body_from_node(&root, id)
+}
+
+fn extract_body_from_node(node: &SyntaxNode, id: &str) -> Option<String> {
+    if node.kind() == SyntaxKind::FuncCall {
+        let text = node.clone().into_text().to_string();
+        let pattern = format!("requirement(\"{}\"", id);
+        let pattern2 = format!("requirement('{}'", id);
+        if text.contains(&pattern) || text.contains(&pattern2) {
+            // Find the opening `(` of the function arguments by looking for
+            // `(id` which follows `requirement("
+            if let Some(args_start) = text.find('(') {
+                // Track paren depth to find the matching closing `)`
+                let mut depth = 1u32;
+                let mut args_end = 0usize;
+                for (i, c) in text[args_start + 1..].char_indices() {
+                    match c {
+                        '(' => depth += 1,
+                        ')' => {
+                            depth -= 1;
+                            if depth == 0 { args_end = args_start + 1 + i; break; }
+                        }
+                        _ => {}
+                    }
+                }
+                if depth > 0 { return None; }
+
+                // Now find the body content block `[...]` after the closing `)`
+                let after_args = &text[args_end + 1..].trim_start();
+                if let Some(body_start_char) = after_args.chars().next() {
+                    if body_start_char != '[' { return None; }
+                    let body_content = &after_args[1..];
+                    let mut depth = 1u32;
+                    let mut body_end = 0usize;
+                    for (i, c) in body_content.char_indices() {
+                        match c {
+                            '[' => depth += 1,
+                            ']' => {
+                                depth -= 1;
+                                if depth == 0 { body_end = i; break; }
+                            }
+                            _ => {}
+                        }
+                    }
+                    if depth == 0 {
+                        return Some(body_content[..body_end].trim().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    for child in node.children() {
+        if let Some(result) = extract_body_from_node(child, id) {
+            return Some(result);
+        }
+    }
+
+    None
+}
 fn find_matching_op<'a>(node: &SyntaxNode, ops: &'a [DeltaOp]) -> Option<&'a DeltaOp> {
     if node.kind() != SyntaxKind::FuncCall {
         return None;
