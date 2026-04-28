@@ -55,19 +55,19 @@ fn skills() -> Vec<SkillDef> {
     vec![
         SkillDef {
             dir_name: "typspec-propose",
-            content: include_str!("../../../skills/typspec/typspec-propose/SKILL.md"),
+            content: include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/skills/typspec/typspec-propose/SKILL.md")),
         },
         SkillDef {
             dir_name: "typspec-explore",
-            content: include_str!("../../../skills/typspec/typspec-explore/SKILL.md"),
+            content: include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/skills/typspec/typspec-explore/SKILL.md")),
         },
         SkillDef {
             dir_name: "typspec-apply",
-            content: include_str!("../../../skills/typspec/typspec-apply/SKILL.md"),
+            content: include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/skills/typspec/typspec-apply/SKILL.md")),
         },
         SkillDef {
             dir_name: "typspec-archive",
-            content: include_str!("../../../skills/typspec/typspec-archive/SKILL.md"),
+            content: include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/skills/typspec/typspec-archive/SKILL.md")),
         },
     ]
 }
