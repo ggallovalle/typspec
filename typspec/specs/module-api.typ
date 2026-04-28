@@ -17,13 +17,13 @@ When applied via `#show: spec.with(title: ..., bibliography: ...)`, it SHALL:
 
 The `bibliography` parameter passes through directly to Typst's native
 `#bibliography()` function, which uses the Hayagriva YAML format. The
-parameter accepts the same types as `#bibliography()`: a string path,
-an array of paths, or a dictionary with a `style` key:
+citation style is set internally by the template — users just provide
+the bibliography source:
 
 ```
 #show: spec.with(
   title: [My Spec],
-  bibliography: ("refs.yaml", style: "iso-690-numeric"),
+  bibliography: "refs.yaml",
 )
 ```
 
