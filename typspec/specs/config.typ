@@ -42,49 +42,24 @@ and any other valid config filename variant.
 
 The CLI SHALL discover config files by walking up from the current working
 directory to the filesystem root. At each directory, the following paths are
-checked (in descending precedence order). The `*` wildcard in `conf.d/*` means
-all files in the directory are loaded in alphabetical order.
+checked in order (first found in a directory wins):
 
 ```
 # Project-local configs (walk up from cwd)
-<dir>/.config/typspec/conf.d/*.jsonc
-<dir>/.config/typspec/conf.d/*.json
-<dir>/.config/typspec/config.jsonc
-<dir>/.config/typspec/config.json
-<dir>/.config/typspec/typspec.jsonc
-<dir>/.config/typspec/typspec.json
-<dir>/.config/typspec.jsonc
-<dir>/.config/typspec.json
-<dir>/.typspec/config.jsonc
-<dir>/.typspec/config.json
-<dir>/typspec/config.jsonc
-<dir>/typspec/config.json
 <dir>/typspec.jsonc
 <dir>/typspec.json
-<dir>/.typspec.jsonc
-<dir>/.typspec.json
+<dir>/typspec/config.jsonc
+<dir>/typspec/config.json
 
-# Local overrides (git-ignored, user-specific)
-<dir>/.config/typspec/config.local.jsonc
-<dir>/.config/typspec/config.local.json
-<dir>/.config/typspec/typspec.local.jsonc
-<dir>/.config/typspec/typspec.local.json
-<dir>/.config/typspec.local.jsonc
-<dir>/.config/typspec.local.json
-<dir>/.typspec/config.local.jsonc
-<dir>/.typspec/config.local.json
-<dir>/typspec/config.local.jsonc
-<dir>/typspec/config.local.json
+# Local overrides (git-ignored)
 <dir>/typspec.local.jsonc
 <dir>/typspec.local.json
-<dir>/.typspec.local.jsonc
-<dir>/.typspec.local.json
+<dir>/typspec/config.local.jsonc
+<dir>/typspec/config.local.json
 
-# Environment-specific configs (TYPSPEC_ENV)
+# Environment-specific (when TYPSPEC_ENV is set)
 <dir>/typspec.<env>.jsonc
 <dir>/typspec.<env>.json
-<dir>/.typspec.<env>.jsonc
-<dir>/.typspec.<env>.json
 ```
 
 === Global and System Config
@@ -93,8 +68,6 @@ Beyond project-local configs, the CLI SHALL also load:
 
 ```
 # User global (lowest precedence)
-~/.config/typspec/conf.d/*.jsonc
-~/.config/typspec/conf.d/*.json
 ~/.config/typspec/config.jsonc
 ~/.config/typspec/config.json
 
@@ -110,13 +83,9 @@ path entirely. When set, only the specified path is loaded.
 
 Configs found in child directories override those in parent directories.
 The global user config serves as the lowest-precedence base.
-Local override files (`.local.`) override their non-local counterparts.
-Environment-specific configs (`typspec.<env>.jsonc`) override base configs
+Local override files (`*.local.*`) override their non-local counterparts.
+Environment-specific configs (`typspec.<env>.*`) override base configs
 when `TYPSPEC_ENV` is set.
-
-Within a single directory, config fragments from `conf.d/` are loaded first
-(in alphabetical order), then the named config files. Later files override
-earlier ones for conflicting keys.
 
 ==== Scenario: discovery walks up
 
@@ -128,7 +97,7 @@ earlier ones for conflicting keys.
 ==== Scenario: child overrides parent
 
 - GIVEN `~/repo/typspec.jsonc` has `"project": { "name": "repo" }`
-- AND `~/repo/packages/logger/.typspec/config.jsonc` has `"project": { "name": "logger" }`
+- AND `~/repo/packages/logger/typspec/config.jsonc` has `"project": { "name": "logger" }`
 - WHEN the CLI runs in `~/repo/packages/logger`
 - THEN `project.name` is `"logger"`
 
