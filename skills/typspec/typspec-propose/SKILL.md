@@ -6,7 +6,7 @@ compatibility: Requires typspec CLI.
 metadata:
   author: typspec
   version: "0.1.0"
-  generatedBy: "0.1.0"
+  generatedBy: "VERSION"
 ---
 
 Propose a new change — create a change document with all sections in one step.

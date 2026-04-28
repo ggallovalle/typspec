@@ -100,18 +100,18 @@ Out of scope:
 = Tasks
 
 #task_group("1. Remove Tera", (
-  task([Remove `tera` dependency from Cargo.toml], done: false, labels: ("cli",)),
-  task([Delete `crates/cli/templates/` directory], done: false, labels: ("cli",)),
+  task([Remove `tera` dependency from Cargo.toml], done: true, labels: ("cli",)),
+  task([Delete `crates/cli/templates/` directory], done: true, labels: ("cli",)),
 ))
 
 #task_group("2. Embed Canonical Skills", (
-  task([Replace Tera rendering with `include_str!()` for each of the 4 skills], done: false, labels: ("cli",)),
-  task([Add VERSION placeholder to YAML frontmatter in canonical skills], done: false, labels: ("docs",)),
-  task([Inject version via simple string replace in generate_skills()], done: false, labels: ("cli",)),
-  task([Remove tera::Context and tera::Tera usage from skills.rs], done: false, labels: ("cli",)),
+  task([Replace Tera rendering with `include_str!()` for each of the 4 skills], done: true, labels: ("cli",)),
+  task([Add VERSION placeholder to YAML frontmatter in canonical skills], done: true, labels: ("docs",)),
+  task([Inject version via simple string replace in generate_skills()], done: true, labels: ("cli",)),
+  task([Remove tera::Context and tera::Tera usage from skills.rs], done: true, labels: ("cli",)),
 ))
 
 #task_group("3. Verify", (
-  task([Run `typspec init --tools opencode`, verify skills match canonical], done: false, labels: ("tests",)),
-  task([Run `cargo build` with no warnings], done: false, labels: ("tests",)),
+  task([Run `typspec init --tools opencode`, verify skills match canonical], done: true, labels: ("tests",)),
+  task([Run `cargo build` with no warnings], done: true, labels: ("tests",)),
 ))

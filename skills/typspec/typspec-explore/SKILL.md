@@ -6,7 +6,7 @@ compatibility: Requires typspec CLI.
 metadata:
   author: typspec
   version: "0.1.0"
-  generatedBy: "0.1.0"
+  generatedBy: "VERSION"
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.

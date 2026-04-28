@@ -631,3 +631,28 @@ The skill templates SHALL use `@fuzzy-matching` (from domain-language.yaml)
     then: [references `@fuzzy-matching`],
   )
 ]
+#requirement("single-source-skills", priority: "shall")[
+Skill templates SHALL be sourced from the canonical `skills/typspec/`
+  directory only. The `crates/cli/templates/` directory and `tera`
+  dependency SHALL be removed.
+
+  At compile time, each `SKILL.md` file from `skills/typspec/` SHALL be
+  embedded via `include_str!()`. The YAML `metadata.generatedBy` field
+  SHALL contain a `VERSION` marker that gets replaced with the crate
+  version at generation time.
+
+  #scenario("tera removed",
+    when: [crate compiles],
+    then: [no `tera` dependency, no `templates/` directory],
+  )
+
+  #scenario("skills embedded",
+    when: [CLI runs `init --tools`],
+    then: [skills written from embedded source, match `skills/` canonical forms],
+  )
+
+  #scenario("version injected",
+    when: [skill is generated],
+    then: [`metadata.generatedBy` matches the CLI version, not hardcoded],
+  )
+]

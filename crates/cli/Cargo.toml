@@ -8,5 +8,4 @@ description = "CLI for typspec — specification management powered by Typst"
 typspec-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
 serde_json = "1"
-tera = "1"
 serde = { version = "1", features = ["derive"] }

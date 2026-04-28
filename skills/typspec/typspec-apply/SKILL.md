@@ -6,7 +6,7 @@ compatibility: Requires typspec CLI.
 metadata:
   author: typspec
   version: "0.1.0"
-  generatedBy: "0.1.0"
+  generatedBy: "VERSION"
 ---
 
 Implement tasks from a change document. Works through the task list, writing
