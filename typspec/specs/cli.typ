@@ -539,3 +539,26 @@ The `typspec-propose` and `typspec-explore` skill templates SHALL
     then: [uses ASCII art as fallback],
   )
 ]
+#requirement("cli-sets-root-for-bibliographies", priority: "shall")[
+The CLI SHALL pass `--root` set to the config file's parent directory
+  when invoking `typst compile` for rendering, validation, and queries.
+
+  This ensures that bibliography paths like
+  `typspec/bibliographies/file.yaml` resolve correctly from any spec,
+  change, or archive document, regardless of their subdirectory.
+
+  #scenario("render sets root",
+    when: [`typspec render typspec/specs/module-api.typ`],
+    then: [internally calls `typst compile --root <project-root> ...`],
+  )
+
+  #scenario("validate sets root",
+    when: [`typspec validate typspec/specs/module-api.typ`],
+    then: [internally calls `typst compile --root <project-root> ...`],
+  )
+
+  #scenario("status sets root",
+    when: [`typspec status module-api`],
+    then: [internally calls `typst query --root <project-root> ...`],
+  )
+]

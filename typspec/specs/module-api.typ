@@ -191,3 +191,16 @@ The `#requirement` function SHALL accept an optional `modifies` named
     then: [error: "modifies required — change targets multiple specs"],
   )
 ]
+#requirement("template-includes-bibliographies", priority: "shall")[
+The `spec` and `change` document templates SHALL call `#bibliography()` for
+  each `.yaml` file found in `typspec/bibliographies/`.
+
+  The `bibliography` parameter on `#show: spec.with(...)` and
+  `#show: change.with(...)` SHALL be removed.
+
+  #scenario("bibliographies included",
+    given: [`typspec/bibliographies/domain-language.yaml` exists],
+    when: [document renders with `--root` set to config dir's parent],
+    then: [template calls `#bibliography("typspec/bibliographies/domain-language.yaml")`, citation resolves],
+  )
+]
