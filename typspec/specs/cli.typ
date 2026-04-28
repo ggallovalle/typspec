@@ -8,261 +8,213 @@ This document specifies the commands and behavior of the `typspec` CLI.
 
 == Global Flags
 
-The CLI SHALL support the following global flags available on all commands:
-
-```
---dry-run    Preview actions without executing. Implies -vv (info level).
---json       Output machine-readable JSON instead of human-readable text.
-             Default: human-readable.
--v           Warning-level logging (default is error).
--vv          Info-level logging.
--vvv         Debug-level logging.
-```
-
-==== Scenario: dry-run implies verbose
-
-- GIVEN a user runs `typspec archive my-change --dry-run`
-- WHEN the command would perform side effects
-- THEN the actions are described but not executed
-- AND log level is set to info
-
-==== Scenario: verbose flag levels
-
-- GIVEN a user runs `typspec status my-change`
-- WHEN no `-v` flag is given, only errors are shown
-- WHEN `-v` is used, warnings and above are shown
-- WHEN `-vv` is used, info and above are shown
-- WHEN `-vvv` or more is used, debug and above are shown
-
-== typspec init
-
-Scaffold a new typspec project in the current directory.
-
-Usage: `typspec init [path]`
-
-If no path is given, uses the current directory. Creates `typspec/specs/`, `typspec/changes/`, and a default `typspec.jsonc`.
-
-==== Scenario: init in current directory
-
-- GIVEN a directory with no typspec setup
-- WHEN `typspec init` is run
-- THEN `typspec/specs/` and `typspec/changes/` are created
-- AND `typspec.jsonc` is created with defaults
-
-==== Scenario: init with path
-
-- GIVEN a target directory
-- WHEN `typspec init ./my-project` is run
-- THEN the typspec structure is created inside `./my-project`
-
-== typspec new
-
-Create a new spec or change file from a template.
-
-Usage:
-```
-typspec new spec <name>
-typspec new change <name>
-```
-
-==== Scenario: new spec
-
-- WHEN `typspec new spec module-api` is run
-- THEN `typspec/specs/module-api.typ` is created from the spec template
-
-==== Scenario: new change
-
-- WHEN `typspec new change add-feature` is run
-- THEN `typspec/changes/add-feature.typ` is created from the change template
-
-== typspec list
-
-List active specs or changes.
-
-Usage:
-```
-typspec list specs
-typspec list changes
-typspec ls specs       (alias)
-typspec ls changes     (alias)
-```
-
-When neither `specs` nor `changes` is specified, defaults to `changes`. The `ls` alias SHALL behave identically to `list`.
-
-==== Scenario: list specs
-
-- WHEN `typspec list specs` is run
-- THEN all `.typ` files in `typspec/specs/` are listed
-- AND their titles are displayed
-
-==== Scenario: list changes
-
-- WHEN `typspec list changes` is run
-- THEN all `.typ` files in `typspec/changes/` are listed with their task completion status
-
-==== Scenario: JSON output
-
-- WHEN `typspec list changes --json` is run
-- THEN a JSON array of change objects is output to stdout
-- AND each object includes `id`, `title`, `task_count`, `tasks_done`
-
-== typspec status
-
-Display metadata from a spec or change.
-
-Usage: `typspec status <name>`
-
-Compiles the `.typ` file and queries for all `typspec:*` metadata elements.
-
-==== Scenario: status for change shows tasks
-
-- GIVEN a change file with `#task` calls
-- WHEN `typspec status my-change` is run
-- THEN all tasks are listed with their `done` status
-- AND a summary shows `3/5 tasks complete`
-
-==== Scenario: status for spec shows requirements
-
-- GIVEN a spec file with `#requirement` calls
-- WHEN `typspec status module-api` is run
-- THEN all requirements are listed with their IDs and priorities
-- AND scenario counts are shown
-
-==== Scenario: JSON output includes metadata
-
-- WHEN `typspec status my-change --json` is run
-- THEN the output includes the raw metadata from the compiled document
-
-== typspec render
-
-Compile a `.typ` file to PDF, with optional watch mode.
-
-Usage:
-```
-typspec render [path]
-typspec render [path] --watch
-```
-
-If no path is given, renders the most recently modified spec or change.
-
-==== Scenario: render with path
-
-- GIVEN a spec file at `typspec/specs/module-api.typ`
-- WHEN `typspec render typspec/specs/module-api.typ` is run
-- THEN a PDF is generated at `typspec/specs/module-api.pdf`
-
-==== Scenario: render with watch
-
-- WHEN `typspec render typspec/specs/module-api.typ --watch` is run
-- THEN the file is recompiled on changes
-- AND the process continues until interrupted
-
-== typspec archive
-
-Archive a completed change. Merges spec-deltas into target specs, then moves the change to the archive directory.
-
-Usage: `typspec archive <name>`
-
-=== Archive Process
-
-The archive command SHALL:
-
-1. Compile the change `.typ` file and query for `typspec:requirement` metadata with `action` set.
-2. For each requirement with `action: "added"`, `action: "modified"`, or `action: "removed"`:
-   - Parse the target spec file using `typst_syntax`.
-   - Locate the requirement node by `id` using AST traversal.
-   - Reconstruct the tree with the modification applied.
-   - Write the modified tree back to source.
-3. Check if the target spec has been modified since the change was created (git SHA comparison).
-4. If conflict detected, warn the user and skip the conflicting requirement.
-5. Move the change file to `typspec/archive/<name>.typ`.
-
-==== Scenario: archive with added requirements
-
-- GIVEN a change with spec-deltas containing `action: "added"`
-- AND the target spec does not contain those requirement IDs
-- WHEN `typspec archive my-change` is run
-- THEN the new requirements are inserted into the target spec
-- AND the change is moved to archive
-
-==== Scenario: archive with removed requirements
-
-- GIVEN a change with spec-deltas containing `action: "removed"`
-- AND the target spec contains those requirement IDs
-- WHEN `typspec archive my-change` is run
-- THEN those requirement nodes are removed from the target spec via AST surgery
-
-==== Scenario: archive detects spec conflict
-
-- GIVEN the target spec was modified after the change was created
-- WHEN `typspec archive my-change` is run
-- THEN a warning is displayed
-- AND conflicting requirements are skipped
-- AND the user is shown which requirements could not be merged
-
-==== Scenario: archive skips unchanged specs
-
-- GIVEN a change with no spec-deltas (tooling-only change)
-- WHEN `typspec archive my-change` is run
-- THEN no spec files are modified
-- AND the change is moved to archive
-
-==== Scenario: dry-run archive
-
-- WHEN `typspec archive my-change --dry-run` is run
-- THEN all merge operations are described in detail
-- AND no files are modified
-
-== typspec validate
-
-Compile a `.typ` file and check that all metadata elements conform to expected structure.
-
-Usage: `typspec validate [path]`
-
-==== Scenario: validate valid spec
-
-- GIVEN a well-formed spec `.typ` file
-- WHEN `typspec validate typspec/specs/module-api.typ` is run
-- THEN the command exits with code 0
-- AND a success message is shown
-
-==== Scenario: validate with compilation error
-
-- GIVEN a `.typ` file with a syntax error
-- WHEN `typspec validate typspec/specs/broken.typ` is run
-- THEN the command reports the error with file and line
-- AND exits with a non-zero code
-
-== typspec install
-
-Fetch workspace dependencies declared in `typspec.jsonc` workspaces.
-
-Usage: `typspec install`
-
-For `git`-based workspaces, clones or fetches the repository and caches it locally. For `registry`-based workspaces (future), downloads from the registry.
-
-==== Scenario: install git workspace dependency
-
-- GIVEN `typspec.jsonc` has a workspace entry with `git` and `tag`
-- WHEN `typspec install` is run
-- THEN the repository is cloned at the specified tag into a local cache
+#requirement("global-flags", priority: "shall")[
+  The CLI SHALL support global flags available on all commands.
+
+  #scenario("dry-run implies verbose",
+    given: [user runs `typspec archive my-change --dry-run`],
+    when: [command would perform side effects],
+    then: [actions described but not executed, log level = info],
+  )
+
+  #scenario("verbose flag levels",
+    given: [user runs `typspec status my-change`],
+    when: [no `-v` given, only errors shown],
+    then: [`-v` = warning level, `-vv` = info, `-vvv` = debug],
+  )
+
+  #scenario("JSON output",
+    given: [user adds `--json` flag],
+    when: [command runs],
+    then: [output is machine-readable JSON to stdout],
+  )
+
+  #scenario("dry-run flag",
+    given: [user adds `--dry-run` flag],
+    when: [command runs],
+    then: [no side effects, all actions described],
+  )
+]
+
+== Commands
+
+=== typspec init
+
+#requirement("cmd-init", priority: "shall")[
+  Scaffold a new typspec project in the current or specified directory.
+
+  Creates `typspec/specs/`, `typspec/changes/`, and a default `typspec.jsonc`.
+
+  #scenario("init in current directory",
+    when: [`typspec init`],
+    then: [directories created, typspec.jsonc written with defaults],
+  )
+
+  #scenario("init with path",
+    when: [`typspec init ./my-project`],
+    then: [structure created inside `./my-project`],
+  )
+]
+
+=== typspec new
+
+#requirement("cmd-new", priority: "shall")[
+  Create a new spec or change file from a template.
+
+  #scenario("new spec",
+    when: [`typspec new spec module-api`],
+    then: [`typspec/specs/module-api.typ` created from template],
+  )
+
+  #scenario("new change",
+    when: [`typspec new change add-feature`],
+    then: [`typspec/changes/add-feature.typ` created from template],
+  )
+]
+
+=== typspec list
+
+#requirement("cmd-list", priority: "shall")[
+  List active specs or changes. Defaults to changes.
+
+  `ls` SHALL be an alias for `list` with identical behavior.
+
+  #scenario("list specs",
+    when: [`typspec list --specs`],
+    then: [all `.typ` files in `typspec/specs/` listed],
+  )
+
+  #scenario("list changes",
+    when: [`typspec list`],
+    then: [all `.typ` files in `typspec/changes/` listed],
+  )
+
+  #scenario("list JSON output",
+    when: [`typspec list --json`],
+    then: [JSON array of file names],
+  )
+
+  #scenario("ls alias",
+    when: [`typspec ls`],
+    then: [identical to `typspec list` output],
+  )
+]
+
+=== typspec status
+
+#requirement("cmd-status", priority: "shall")[
+  Display metadata from a spec or change by compiling and querying.
+
+  #scenario("status shows requirements",
+    given: [spec file with `#requirement` calls],
+    when: [`typspec status module-api`],
+    then: [all requirements listed with IDs and priorities],
+  )
+
+  #scenario("status shows tasks",
+    given: [change file with `#task` calls],
+    when: [`typspec status my-change`],
+    then: [tasks listed with done status, summary shown],
+  )
+
+  #scenario("status JSON",
+    when: [`typspec status my-change --json`],
+    then: [raw metadata from compiled document output],
+  )
+]
+
+=== typspec render
+
+#requirement("cmd-render", priority: "shall")[
+  Compile a `.typ` file to PDF, with optional watch mode.
+
+  If no path is given, renders the most recently modified `.typ` file.
+
+  #scenario("render with path",
+    when: [`typspec render typspec/specs/module-api.typ`],
+    then: [PDF generated at `typspec/specs/module-api.pdf`],
+  )
+
+  #scenario("render with watch",
+    when: [`typspec render typspec/specs/module-api.typ --watch`],
+    then: [file recompiled on changes until interrupted],
+  )
+]
+
+=== typspec archive
+
+#requirement("cmd-archive", priority: "shall")[
+  Archive a completed change. Merges spec-deltas into target specs, then moves the change to the archive directory.
+
+  #scenario("archive with added requirements",
+    given: [change with `#requirement(..., action: "added")`],
+    when: [`typspec archive my-change`],
+    then: [new requirements inserted into target spec, change moved to archive],
+  )
+
+  #scenario("archive with removed requirements",
+    given: [change with `#requirement(..., action: "removed")`],
+    when: [`typspec archive my-change`],
+    then: [requirements removed from target spec via AST surgery],
+  )
+
+  #scenario("archive detects spec conflict",
+    given: [target spec has uncommitted changes],
+    when: [`typspec archive my-change`],
+    then: [warning displayed, conflicting specs skipped],
+  )
+
+  #scenario("dry-run archive",
+    when: [`typspec archive my-change --dry-run`],
+    then: [all merge operations described, no files modified],
+  )
+]
+
+=== typspec validate
+
+#requirement("cmd-validate", priority: "shall")[
+  Compile a `.typ` file and check for errors.
+
+  #scenario("validate valid spec",
+    when: [`typspec validate typspec/specs/module-api.typ`],
+    then: [success message, exit code 0],
+  )
+
+  #scenario("validate with error",
+    given: [`.typ` file with syntax error],
+    when: [`typspec validate typspec/specs/broken.typ`],
+    then: [error reported with file and line, non-zero exit],
+  )
+]
+
+=== typspec install
+
+#requirement("cmd-install", priority: "should")[
+  Fetch workspace dependencies declared in `typspec.jsonc` workspaces.
+
+  For `git`-based workspaces, clones at the specified ref into a local cache.
+
+  #scenario("install git workspace",
+    given: [config with `git` workspace entry and `tag`],
+    when: [`typspec install`],
+    then: [repository cloned at specified tag into `.typspec/cache/`],
+  )
+]
 
 == Exit Codes
 
-The CLI SHALL use the following exit codes:
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Error (validation failure, missing files, archive conflict) |
-| 130 | Cancelled by user (SIGINT) |
+#requirement("exit-codes", priority: "shall")[
+  The CLI SHALL use exit code 0 for success, 1 for errors, and 130 for user cancellation (SIGINT).
+]
 
 == Command Resolution
 
-The CLI SHALL discover the nearest `typspec.jsonc` by walking up from the current working directory. If none is found, commands that require a project context SHALL error with a message suggesting `typspec init`.
+#requirement("config-discovery", priority: "shall")[
+  The CLI SHALL discover the nearest `typspec.jsonc` by walking up from the current directory.
 
-==== Scenario: cli outside project
-
-- GIVEN the current directory has no `typspec.jsonc` in any parent
-- WHEN any project command is run
-- THEN the CLI errors with "No typspec project found. Run `typspec init` to create one."
+  #scenario("cli outside project",
+    given: [no `typspec.jsonc` in any parent directory],
+    when: [any project command runs],
+    then: [CLI errors suggesting `typspec init`],
+  )
+]
