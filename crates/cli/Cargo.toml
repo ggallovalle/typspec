@@ -3,10 +3,17 @@ name = "typspec"
 version = "0.1.0"
 edition = "2021"
 description = "CLI for typspec — specification management powered by Typst"
+license = "MIT"
+repository = "https://github.com/ggallovalle/typspec"
+homepage = "https://github.com/ggallovalle/typspec"
+keywords = ["specifications", "typst", "documentation", "requirements"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
-typspec-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
 clap_usage = "2"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
+typst-syntax = "0.14"
+schemars = { version = "1", features = ["derive"] }
+strsim = "0.11"

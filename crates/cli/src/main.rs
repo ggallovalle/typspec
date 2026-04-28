@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 
+mod core;
 mod skills;
 
 /// typspec — structured specification management powered by Typst.
@@ -428,7 +429,7 @@ fn cmd_status(name: &str, json: bool) {
         let task_descriptions = if change_path.exists() {
             std::fs::read_to_string(&change_path)
                 .ok()
-                .map(|text| typspec_core::surgery::extract_task_bodies(&text))
+                .map(|text| crate::core::surgery::extract_task_bodies(&text))
                 .unwrap_or_default()
         } else {
             vec![]
@@ -551,13 +552,13 @@ fn cmd_archive(change_name: &str, _yes: bool, json: bool) {
         .unwrap_or_default();
 
     // Find spec-delta requirements
-    let mut delta_ops = typspec_core::metadata_to_delta_ops(&entries);
+    let mut delta_ops = crate::core::metadata_to_delta_ops(&entries);
 
     // Extract requirement bodies from the change file source
     if let Ok(change_text) = std::fs::read_to_string(&change_path) {
         for op in &mut delta_ops {
             if op.content.is_none() {
-                if let Some(body) = typspec_core::surgery::extract_requirement_body(&change_text, &op.id) {
+                if let Some(body) = crate::core::surgery::extract_requirement_body(&change_text, &op.id) {
                     op.content = Some(format!(
                         "#requirement(\"{}\", priority: \"shall\")[\n{}\n]\n",
                         op.id, body
@@ -576,7 +577,7 @@ fn cmd_archive(change_name: &str, _yes: bool, json: bool) {
     }
 
     // Group delta ops by target spec using modifies field
-    let (spec_deltas, validation_errors) = typspec_core::group_delta_ops_by_spec(
+    let (spec_deltas, validation_errors) = crate::core::group_delta_ops_by_spec(
         &delta_ops, &modifies, &paths.specs,
     );
 
@@ -593,14 +594,14 @@ fn cmd_archive(change_name: &str, _yes: bool, json: bool) {
             println!("Applying spec-deltas to: {:?}", modifies);
         }
 
-        match typspec_core::apply_spec_deltas(&spec_deltas) {
+        match crate::core::apply_spec_deltas(&spec_deltas) {
             Ok(results) => {
                 let total_changes: usize = results.values().map(|r| r.changes).sum();
                 if total_changes > 0 {
                     for (path, result) in &results {
                         println!("  → {} ({} change(s))", path, result.changes);
                     }
-                    typspec_core::write_results(&results).unwrap_or_else(|e| {
+                    crate::core::write_results(&results).unwrap_or_else(|e| {
                         eprintln!("error writing changes: {}", e);
                     });
                 } else {
@@ -654,12 +655,12 @@ fn cmd_validate(path: Option<&Path>) {
 
 fn cmd_install() {
     // Load config and find git workspace dependencies
-    match typspec_core::config::load_config(Path::new(".")) {
+    match crate::core::config::load_config(Path::new(".")) {
         Ok(cfg) => {
             let mut found = false;
             for (name, entry) in &cfg.workspaces {
                 match entry {
-                    typspec_core::config::WorkspaceEntry::Git { git, tag, commit, subpath: _ } => {
+                    crate::core::config::WorkspaceEntry::Git { git, tag, commit, subpath: _ } => {
                         found = true;
                         let cache_dir = PathBuf::from(".typspec")
                             .join("cache")
@@ -775,7 +776,7 @@ fn cmd_which(target: &str, json: bool) {
     }
 
     eprintln!("error: '{}' not found", target);
-    let suggestions = typspec_core::fuzzy::best_fuzzy_match(target, &candidates);
+    let suggestions = crate::core::fuzzy::best_fuzzy_match(target, &candidates);
     if suggestions.len() == 1 {
         eprintln!("  tip: a similar name exists: '{}'", suggestions[0]);
     } else if suggestions.len() > 1 {
@@ -799,7 +800,7 @@ fn cmd_usage() {
 }
 
 fn cmd_schema() {
-    let value = typspec_core::config::generate_schema();
+    let value = crate::core::config::generate_schema();
     println!("{}", serde_json::to_string_pretty(&value).unwrap());
 }
 
@@ -857,7 +858,7 @@ fn suggest_name(input: &str, dirs: &[PathBuf]) {
         }
     }
 
-    let suggestions = typspec_core::fuzzy::best_fuzzy_match(input, &candidates);
+    let suggestions = crate::core::fuzzy::best_fuzzy_match(input, &candidates);
     if suggestions.len() == 1 {
         eprintln!("  tip: a similar name exists: '{}'", suggestions[0]);
     } else if suggestions.len() > 1 {
