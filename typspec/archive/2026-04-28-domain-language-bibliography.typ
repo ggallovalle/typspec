@@ -6,11 +6,10 @@
 
 == Motivation
 
-The codebase references "Levenshtein distance with ~67% threshold" in
-multiple places — specs, change documents, CLI code, and skill templates.
-Each reference describes the algorithm inline. A canonical bibliography
-entry at `typspec/bibliographies/domain-language.yaml` provides a single
-source of truth, referenced as `@damlev`.
+The codebase references @fuzzy-matching in multiple places — specs, change
+documents, CLI code, and skill templates. A canonical bibliography entry at
+`typspec/bibliographies/domain-language.yaml` provides a single source of
+truth via `@damlev` and `@fuzzy-matching`.
 
 Additionally, the hand-rolled Levenshtein in `fuzzy.rs` should be replaced
 with `strsim::damerau_levenshtein`, which handles transpositions (a common
@@ -107,3 +106,4 @@ Out of scope:
   task([Update skill templates to reference \@damlev], done: false, labels: ("docs",)),
   task([Update all archived changes that mention Levenshtein to use \@damlev], done: false, labels: ("docs",)),
 ))
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

@@ -21,7 +21,7 @@ and `archive` already use.
 In scope:
 - `typspec which <name>` searches specs → changes → archive
 - Returns the relative file path of the first match
-- Fuzzy matching with "did you mean" on no exact match
+- @fuzzy-matching with "did you mean" on no exact match
 - Works with configured paths (respects typspec.jsonc paths)
 
 Out of scope:

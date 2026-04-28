@@ -26,7 +26,7 @@ names which spec this requirement targets. The archive command should use this
 to route each delta to the correct spec file.
 
 If the spec doesn't exist, error and suggest existing spec names (with the
-same "did you mean" heuristic). If a requirement specifies a spec not listed
+same @fuzzy-matching). If a requirement specifies a spec not listed
 in the change's top-level `modifies`, error with a message saying it must be
 declared there.
 
@@ -148,8 +148,7 @@ Out of scope:
 
 #requirement("validation-target-spec-exists", priority: "shall", action: "added", modifies: "cli")[
   If the target spec file for a requirement does not exist on disk, the
-  archive SHALL error and suggest existing spec names using the "did you
-  mean" Levenshtein heuristic.
+  archive SHALL error and suggest existing spec names using @fuzzy-matching.
 
   #scenario("target spec file missing",
     given: [typspec/specs/config.typ does not exist],
@@ -201,3 +200,4 @@ Out of scope:
 #task_group("6. Module API Spec Update", (
   task([Document modifies parameter on requirement], done: false, labels: ("docs",)),
 ))
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

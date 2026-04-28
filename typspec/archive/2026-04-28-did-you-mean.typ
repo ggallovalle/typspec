@@ -57,12 +57,12 @@ Out of scope:
 == ADDED Requirements
 
 #requirement("fuzzy-name-matching", priority: "shall", action: "added")[
-  The `status` and `archive` commands SHALL perform fuzzy matching when a
+  The `status` and `archive` commands SHALL perform @fuzzy-matching when a
   spec or change name is not found.
 
   The CLI SHALL collect all available names from the appropriate directory,
-  compute Levenshtein edit distance against the user's input, and display
-  the closest match when the similarity exceeds approximately 67%.
+  compute @damlev edit distance, and display the closest match when the
+  similarity exceeds approximately 67% (see @fuzzy-matching).
 
   #scenario("suggests closest match on typo",
     given: [a change named `customizable-paths` exists],
@@ -106,3 +106,4 @@ Out of scope:
   task([Test obvious typo returns correct suggestion], done: true, labels: ("tests",)),
   task([Test completely unrelated name returns no suggestion], done: true, labels: ("tests",)),
 ))
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
