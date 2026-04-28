@@ -1,0 +1,9 @@
+{
+  "name": "typspec-skills",
+  "skills": [
+    "./skills/typspec/typspec-propose/SKILL.md",
+    "./skills/typspec/typspec-explore/SKILL.md",
+    "./skills/typspec/typspec-apply/SKILL.md",
+    "./skills/typspec/typspec-archive/SKILL.md"
+  ]
+}
