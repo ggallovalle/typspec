@@ -82,7 +82,6 @@ pub fn metadata_to_delta_ops(entries: &[serde_json::Value]) -> Vec<DeltaOp> {
         };
 
         let id = entry["id"].as_str().unwrap_or("").to_string();
-        let priority = entry["priority"].as_str().unwrap_or("shall");
 
         let content = match action {
             DeltaAction::Added => None,
