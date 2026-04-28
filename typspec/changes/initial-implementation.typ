@@ -119,7 +119,7 @@ spec files for full requirement definitions.)
 - [x] 2.5 Implement AST surgery: replace requirement node
 - [x] 2.6 Implement AST surgery: insert new requirement node
 - [x] 2.7 Implement AST surgery: remove requirement node
-- [ ] 2.8 Implement archive merge orchestration (delta processing)
+- [x] 2.8 Implement archive merge orchestration (delta processing)
 - [ ] 2.9 Implement git SHA conflict detection
 
 == 3. CLI
