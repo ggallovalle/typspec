@@ -37,12 +37,7 @@ an array of paths, or a dictionary with a `style` key:
 
 - WHEN user writes `#show: spec.with(title: [My Spec], bibliography: "refs.yaml")`
 - THEN the bibliography is sourced from Hayagriva YAML in `refs.yaml`
-- AND `@cite` references resolve correctly
-
-==== Scenario: bibliography with style
-
-- WHEN user provides `bibliography: ("refs.yaml", style: "iso-690-numeric")`
-- THEN the Hayagriva data is rendered with ISO-690 numeric citation style
+- AND `@key` citations resolve correctly
 
 ==== Scenario: multiple bibliographies
 
