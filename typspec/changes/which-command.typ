@@ -12,9 +12,8 @@ tries specs/changes and errors if not found, but doesn't show the path
 in its output.
 
 A `typspec which <name>` command fills this gap: search specs, changes,
-and archive in order, return the first match. If no match, use the same
-"did you mean" fuzzy matching (@damlev, ~67% threshold) that `status`
-and `archive` already use.
+and archive in order, return the first match. If no match, use @fuzzy-matching
+(see @damlev) that `status` and `archive` already use.
 
 == Scope
 
