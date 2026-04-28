@@ -172,38 +172,32 @@ The `task` function SHALL define a single actionable item. The `task-group` func
 
 ```
 #task-group("CLI Core", (
-  #task("Implement `typspec new`", done: false),
-  #task("Implement `typspec list`", done: false),
-  #task("Implement `typspec status`", done: false),
+  #task[Implement `typspec new`](done: false),
+  #task[Implement `typspec list`](done: false, assignee: "human"),
+  #task[Implement `typspec status`](
+    done: false,
+    assignee: "ai",
+    labels: ("cli",),
+  ),
 ))
-```
-
-```
-#task[
-  Implement `typspec new` command with `clap`
-](
-  done: false,
-  assignee: "ai",
-  labels: ("cli",),
-)
 ```
 
 === Parameters
 
 - Body (positional, content) — what needs to be done. Free-form content allowing inline code, emphasis, and links.
 - `done` (named, bool, optional) — whether the task is complete. Default: `false`.
-- `assignee` (named, string, optional) — who should implement: `"ai"` or `"human"`. Default: `"ai"`.
+- `assignee` (named, string, optional) — who is responsible. Any identifier: GitHub username, person's name, `"ai"`, `"human"`, etc. No default.
 - `labels` (named, array of strings, optional) — free-form tags for filtering. Example: `("cli", "tests")`.
 
 ==== Scenario: incomplete task
 
-- WHEN user writes `#task("Implement X", done: false)`
+- WHEN user writes `#task[Implement X](done: false)`
 - THEN the task renders as unchecked
 - AND metadata has `done: false`
 
 ==== Scenario: completed task
 
-- WHEN user writes `#task("Implement X", done: true)`
+- WHEN user writes `#task[Implement X](done: true)`
 - THEN the task renders as checked
 - AND metadata has `done: true`
 
