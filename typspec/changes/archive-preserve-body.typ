@@ -95,13 +95,13 @@ Out of scope:
 = Tasks
 
 #task_group("1. Core Library", (
-  task([Remove TODO generation from `metadata_to_delta_ops` for Added — accept content from caller], done: false, labels: ("core",)),
+  task([Remove TODO generation from `metadata_to_delta_ops` for Added — accept content from caller], done: true, labels: ("core",)),
 ))
 
 #task_group("2. CLI Archive Command", (
-  task([Read change file source text], done: false, labels: ("cli",)),
-  task([Find `#requirement("id", ...)` FuncCall nodes in change file AST by ID], done: false, labels: ("cli",)),
-  task([Extract body content block `[...]` from matched node], done: false, labels: ("cli",)),
-  task([Pass extracted body as DeltaOp content instead of TODO stub], done: false, labels: ("cli",)),
-  task([Fall back to TODO if extraction fails], done: false, labels: ("cli",)),
+  task([Read change file source text], done: true, labels: ("cli",)),
+  task([Find `#requirement("id", ...)` FuncCall nodes in change file AST by ID], done: true, labels: ("cli",)),
+  task([Extract body content block `[...]` from matched node], done: true, labels: ("cli",)),
+  task([Pass extracted body as DeltaOp content instead of TODO stub], done: true, labels: ("cli",)),
+  task([Fall back to TODO if extraction fails], done: true, labels: ("cli",)),
 ))
