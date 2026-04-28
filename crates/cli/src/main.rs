@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 
 mod skills;
 
@@ -44,6 +44,12 @@ enum Commands {
         /// Show specs instead of changes
         #[arg(long)]
         specs: bool,
+        /// Output bare names for shell completion (hidden)
+        #[arg(long, hide = true)]
+        complete: bool,
+        /// Include archive names in listing
+        #[arg(long)]
+        all: bool,
     },
     /// Display metadata from a spec or change
     Status {
@@ -61,7 +67,8 @@ enum Commands {
     /// Archive a completed change
     Archive {
         /// Change name to archive
-        name: String,
+        #[arg(value_name = "CHANGE_NAME")]
+        change_name: String,
         /// Skip confirmation
         #[arg(short, long)]
         yes: bool,
@@ -76,8 +83,23 @@ enum Commands {
     /// Locate a file by name across specs, changes, and archive
     Which {
         /// Name of the spec, change, or archived change
-        name: String,
+        #[arg(value_name = "TARGET")]
+        target: String,
     },
+    /// Generate usage spec for shell completions (hidden)
+    #[command(hide = true)]
+    Usage,
+    /// Generate shell completion scripts
+    Completion {
+        /// Shell to generate completions for
+        #[arg(value_enum)]
+        shell: ShellKind,
+    },
+}
+
+#[derive(ValueEnum, Clone, Debug)]
+enum ShellKind {
+    Zsh,
 }
 
 #[derive(Subcommand, Debug)]
@@ -114,13 +136,15 @@ fn main() {
     match &cli.command {
         Commands::Init { path, tools } => cmd_init(path.as_deref(), cli.json, tools.as_deref()),
         Commands::New { kind } => cmd_new(kind, cli.json),
-        Commands::List { specs } => cmd_list(*specs, cli.json),
+        Commands::List { specs, complete, all } => cmd_list(*specs, *complete, *all, cli.json),
         Commands::Status { name } => cmd_status(name, cli.json),
         Commands::Render { path, watch } => cmd_render(path.as_deref(), *watch),
-        Commands::Archive { name, yes } => cmd_archive(name, *yes, cli.json),
+        Commands::Archive { change_name, yes } => cmd_archive(change_name, *yes, cli.json),
         Commands::Validate { path } => cmd_validate(path.as_deref()),
         Commands::Install => cmd_install(),
-        Commands::Which { name } => cmd_which(name, cli.json),
+        Commands::Which { target } => cmd_which(target, cli.json),
+        Commands::Usage => cmd_usage(),
+        Commands::Completion { shell } => cmd_completion(shell),
     }
 }
 
@@ -270,40 +294,62 @@ What is and isn't changing.
     }
 }
 
-fn cmd_list(specs: bool, json: bool) {
+fn cmd_list(specs: bool, complete: bool, all: bool, json: bool) {
     let paths = resolve_project_paths().unwrap_or_else(|e| {
         eprintln!("error: {}", e); std::process::exit(1);
     });
-    let dir = if specs { paths.specs } else { paths.changes };
     let cwd = std::env::current_dir().unwrap_or_default();
 
-    let entries: Vec<_> = match std::fs::read_dir(&dir) {
-        Ok(entries) => entries
-            .filter_map(|e| e.ok())
-            .filter(|e| e.path().extension().map(|ext| ext == "typ").unwrap_or(false))
-            .collect(),
-        Err(_) => Vec::new(),
+    let dirs: Vec<&PathBuf> = if all {
+        vec![&paths.specs, &paths.changes, &paths.archive]
+    } else if specs {
+        vec![&paths.specs]
+    } else {
+        vec![&paths.changes]
     };
+
+    let mut entries: Vec<(String, PathBuf)> = Vec::new();
+    for (dir_idx, dir) in dirs.iter().enumerate() {
+        if let Ok(dir_entries) = std::fs::read_dir(dir) {
+            for entry in dir_entries.flatten() {
+                if entry.path().extension().map(|ext| ext == "typ").unwrap_or(false) {
+                    let path = entry.path();
+                    let stem = path.file_stem().unwrap().to_string_lossy().to_string();
+                    let name = if dir_idx == 2 && stem.len() > 11 {
+                        // Archive: strip YYYY-MM-DD- prefix
+                        stem[11..].to_string()
+                    } else {
+                        stem
+                    };
+                    entries.push((name, path));
+                }
+            }
+        }
+    }
+
+    if complete {
+        for (name, _) in &entries {
+            println!("{}", name);
+        }
+        return;
+    }
 
     if json {
         let items: Vec<serde_json::Value> = entries.iter()
-            .map(|f| {
-                let path = f.path();
-                let name = path.file_stem().unwrap().to_string_lossy().to_string();
-                let rel = path.strip_prefix(&cwd).unwrap_or(&path);
+            .map(|(name, path)| {
+                let rel = path.strip_prefix(&cwd).unwrap_or(path);
                 serde_json::json!({"name": name, "path": rel.to_string_lossy()})
             })
             .collect();
         println!("{}", serde_json::to_string(&items).unwrap());
     } else {
-        for file in &entries {
-            let path = file.path();
-            let name = path.file_stem().unwrap().to_string_lossy();
-            let rel = path.strip_prefix(&cwd).unwrap_or(&path);
+        for (name, path) in &entries {
+            let rel = path.strip_prefix(&cwd).unwrap_or(path);
             println!("  {} ({})", name, rel.to_string_lossy());
         }
         if entries.is_empty() {
-            println!("  (no {} found)", if specs { "specs" } else { "changes" });
+            let label = if all { "specs, changes, or archive" } else if specs { "specs" } else { "changes" };
+            println!("  (no {} found)", label);
         }
     }
 }
@@ -446,15 +492,15 @@ fn find_latest_typ_file() -> PathBuf {
     })
 }
 
-fn cmd_archive(name: &str, _yes: bool, json: bool) {
+fn cmd_archive(change_name: &str, _yes: bool, json: bool) {
     let paths = resolve_project_paths().unwrap_or_else(|e| {
         eprintln!("error: {}", e); std::process::exit(1);
     });
-    let change_path = paths.changes.join(format!("{}.typ", name));
+    let change_path = paths.changes.join(format!("{}.typ", change_name));
 
     if !change_path.exists() {
-        eprintln!("error: change '{}' not found at {}", name, change_path.display());
-        suggest_name(name, &[paths.changes.clone()]);
+        eprintln!("error: change '{}' not found at {}", change_name, change_path.display());
+        suggest_name(change_name, &[paths.changes.clone()]);
         std::process::exit(1);
     }
 
@@ -550,7 +596,7 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     std::fs::create_dir_all(&paths.archive).expect("failed to create archive dir");
 
     let today = today_date();
-    let archived_name = format!("{}-{}", today, name);
+    let archived_name = format!("{}-{}", today, change_name);
     let dest = paths.archive.join(format!("{}.typ", archived_name));
 
     // Use git mv when tracked, fs::rename otherwise
@@ -559,7 +605,7 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     if json {
         println!(r#"{{"archived": "{}"}}"#, dest.display());
     } else {
-        println!("✓ Archived {} → {}", name, dest.display());
+        println!("✓ Archived {} → {}", change_name, dest.display());
     }
 }
 
@@ -638,7 +684,7 @@ fn cmd_install() {
 }
 
 /// Locate a file by name across specs, changes, and archive directories.
-fn cmd_which(name: &str, json: bool) {
+fn cmd_which(target: &str, json: bool) {
     let paths = match resolve_project_paths() {
         Ok(p) => p,
         Err(e) => {
@@ -649,7 +695,7 @@ fn cmd_which(name: &str, json: bool) {
 
     // Search in order: specs → changes → archive
     let dirs = [&paths.specs, &paths.changes, &paths.archive];
-    let file_name = format!("{}.typ", name);
+    let file_name = format!("{}.typ", target);
 
     for (i, dir) in dirs.iter().enumerate() {
         if i == 2 {
@@ -661,11 +707,11 @@ fn cmd_which(name: &str, json: bool) {
                     if p.extension().map(|e| e == "typ").unwrap_or(false) {
                         if let Some(stem) = p.file_stem() {
                             let stem = stem.to_string_lossy();
-                            if stem.ends_with(&format!("-{}", name)) || stem == name {
+                            if stem.ends_with(&format!("-{}", target)) || stem == target {
                                 let cwd = std::env::current_dir().unwrap_or_default();
                                 let rel = p.strip_prefix(&cwd).unwrap_or(&p);
                                 if json {
-                                    println!(r#"{{"name": "{}", "path": "{}"}}"#, name, rel.to_string_lossy());
+                                    println!(r#"{{"name": "{}", "path": "{}"}}"#, target, rel.to_string_lossy());
                                 } else {
                                     println!("{}", rel.to_string_lossy());
                                 }
@@ -681,7 +727,7 @@ fn cmd_which(name: &str, json: bool) {
                 let cwd = std::env::current_dir().unwrap_or_default();
                 let rel = candidate.strip_prefix(&cwd).unwrap_or(&candidate);
                 if json {
-                    println!(r#"{{"name": "{}", "path": "{}"}}"#, name, rel.to_string_lossy());
+                    println!(r#"{{"name": "{}", "path": "{}"}}"#, target, rel.to_string_lossy());
                 } else {
                     println!("{}", rel.to_string_lossy());
                 }
@@ -704,8 +750,8 @@ fn cmd_which(name: &str, json: bool) {
         }
     }
 
-    eprintln!("error: '{}' not found", name);
-    let suggestions = typspec_core::fuzzy::best_fuzzy_match(name, &candidates);
+    eprintln!("error: '{}' not found", target);
+    let suggestions = typspec_core::fuzzy::best_fuzzy_match(target, &candidates);
     if suggestions.len() == 1 {
         eprintln!("  tip: a similar name exists: '{}'", suggestions[0]);
     } else if suggestions.len() > 1 {
@@ -714,6 +760,57 @@ fn cmd_which(name: &str, json: bool) {
     }
 
     std::process::exit(1);
+}
+
+fn cmd_usage() {
+    let mut cmd = Cli::command();
+    let mut buf = Vec::new();
+    clap_usage::generate(&mut cmd, "typspec", &mut buf);
+    let spec = String::from_utf8(buf).unwrap_or_default();
+    print!("{}", spec);
+
+    println!(r#"complete "NAME" run="typspec list --specs --complete; typspec list --complete" descriptions=#true"#);
+    println!(r#"complete "CHANGE_NAME" run="typspec list --complete""#);
+    println!(r#"complete "TARGET" run="typspec list --all --complete""#);
+}
+
+fn cmd_completion(shell: &ShellKind) {
+    match shell {
+        ShellKind::Zsh => {
+            println!("#compdef typspec");
+            println!("# @generated by usage-cli from usage spec");
+            println!(r#"local curcontext="$curcontext""#);
+            println!();
+            println!("_typspec() {{");
+            println!("  typeset -A opt_args");
+            println!(r#"  local curcontext="$curcontext""#);
+            println!();
+            println!("  if ! type -p usage &> /dev/null; then");
+            println!("      echo >&2");
+            println!("      echo \"Error: usage CLI not found. This is required for completions to work with typspec.\" >&2");
+            println!("      echo \"See https://usage.jdx.dev for more information.\" >&2");
+            println!("      return 1");
+            println!("  fi");
+            println!();
+            println!(r#"  local spec_file="${{TMPDIR:-/tmp}}/typspec_spec""#);
+            println!("  if [[ ! -f \"$spec_file\" ]]; then");
+            println!("    typspec usage >| \"$spec_file\"");
+            println!("  fi");
+            println!("  local -a completions=()");
+            println!("  while IFS= read -r line; do");
+            println!("    completions+=(\"$line\")");
+            println!(r#"  done < <(command usage complete-word --shell zsh -f "$spec_file" -- "${{words[@]}}")"#);
+            println!("  _describe 'completions' completions -S ''");
+            println!("  return 0");
+            println!("}}");
+            println!();
+            println!(r#"if [ "$funcstack[1]" = "_typspec" ]; then"#);
+            println!(r#"    _typspec "$@""#);
+            println!("else");
+            println!("    compdef _typspec typspec");
+            println!("fi");
+        }
+    }
 }
 
 /// Suggest a "did you mean" name when a spec or change is not found.

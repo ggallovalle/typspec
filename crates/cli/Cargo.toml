@@ -7,5 +7,6 @@ description = "CLI for typspec — specification management powered by Typst"
 [dependencies]
 typspec-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
+clap_usage = "2"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }

@@ -177,29 +177,29 @@ Out of scope:
 = Tasks
 
 #task_group("1. Add dependencies", (
-  task([Add `clap_usage` crate to `crates/cli/Cargo.toml`], done: false, labels: ("cli",)),
+  task([Add `clap_usage` crate to `crates/cli/Cargo.toml`], done: true, labels: ("cli",)),
 ))
 
 #task_group("2. Implement typspec usage", (
-  task([Add hidden `typspec usage` subcommand that generates KDL spec], done: false, labels: ("cli",)),
-  task([Include `complete` directives for status/archive/which name args], done: false, labels: ("cli",)),
+  task([Add hidden `typspec usage` subcommand that generates KDL spec], done: true, labels: ("cli",)),
+  task([Include `complete` directives for status/archive/which name args], done: true, labels: ("cli",)),
 ))
 
 #task_group("3. Implement typspec completion", (
-  task([Add `typspec completion <shell>` subcommand], done: false, labels: ("cli",)),
-  task([Generate zsh completion script matching mise's pattern], done: false, labels: ("cli",)),
+  task([Add `typspec completion <shell>` subcommand], done: true, labels: ("cli",)),
+  task([Generate zsh completion script matching mise's pattern], done: true, labels: ("cli",)),
 ))
 
 #task_group("4. Implement --complete flags", (
-  task([Add hidden `--complete` flag to `list` for bare name output], done: false, labels: ("cli",)),
-  task([Add `--all` flag to `list` to include archive names], done: false, labels: ("cli",)),
+  task([Add hidden `--complete` flag to `list` for bare name output], done: true, labels: ("cli",)),
+  task([Add `--all` flag to `list` to include archive names], done: true, labels: ("cli",)),
 ))
 
 #task_group("5. Verify", (
-  task([Run `typspec usage | usage lint`, verify clean], done: false, labels: ("tests",)),
-  task([Run `typspec completion zsh > _typspec`, verify script structure], done: false, labels: ("tests",)),
-  task([Run `cargo build` with no warnings], done: false, labels: ("tests",)),
-  task([Manual: source generated script and verify tab-completion works], done: false, labels: ("tests",)),
+  task([Run `typspec usage | usage lint`, verify clean], done: true, labels: ("tests",)),
+  task([Run `typspec completion zsh > _typspec`, verify script structure], done: true, labels: ("tests",)),
+  task([Run `cargo build` with no warnings], done: true, labels: ("tests",)),
+  task([Manual: source generated script and verify tab-completion works], done: true, labels: ("tests",)),
 ))
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

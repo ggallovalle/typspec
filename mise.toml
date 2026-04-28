@@ -1,5 +1,5 @@
-[tasks.typspec]
-run = "cargo run -p typspec -- $@"
+# [tasks.typspec]
+# run = "cargo run -p typspec -- $@"
 
 [tasks.install]
 run = "cargo install --path crates/cli --force"
