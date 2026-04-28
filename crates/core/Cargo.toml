@@ -1,8 +1,8 @@
 [package]
 name = "typspec-core"
 version = "0.1.0"
-edition = "2024"
-description = "Core library for typspec — AST surgery, metadata querying, config parsing"
+edition = "2021"
+description = "Core library for typspec — config parsing, metadata querying, AST surgery"
 
 [dependencies]
 typst-syntax = "0.14"
