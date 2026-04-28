@@ -120,3 +120,21 @@ and a full documentation site similar to OpenSpec's docs structure.
 ]
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+#requirement("readme-hero", priority: "shall")[
+The README SHALL open with a clear pitch explaining what typspec is
+  and why it exists.
+]
+#requirement("readme-installation", priority: "shall")[
+The README SHALL document cargo install, cargo binstall, and mise
+  installation methods with copy-paste commands.
+]
+#requirement("readme-quickstart", priority: "shall")[
+The README SHALL include a quickstart walkthrough of the basic
+  typspec workflow.
+]
+#requirement("readme-badges", priority: "shall")[
+The README SHALL display crates.io, CI, and license badges.
+]
+#requirement("readme-structure", priority: "shall")[
+The README SHALL include a repository structure diagram.
+]
