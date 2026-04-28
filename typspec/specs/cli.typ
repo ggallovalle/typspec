@@ -215,12 +215,12 @@ Path resolution SHALL be relative to the config file's directory, not CWD.
   runs commands from.
 ]
 #requirement("fuzzy-name-matching", priority: "shall")[
-The `status` and `archive` commands SHALL perform fuzzy matching when a
+  The `status` and `archive` commands SHALL perform @fuzzy-matching when a
   spec or change name is not found.
 
   The CLI SHALL collect all available names from the appropriate directory,
   compute @damlev edit distance against the user's input, and display
-  the closest match when the similarity exceeds approximately 67%.
+  the closest match when @fuzzy-matching is enabled (~67% similarity).
 
   #scenario("suggests closest match on typo",
     given: [a change named `customizable-paths` exists],

@@ -47,7 +47,7 @@ Out of scope:
 )
 
 #decision(
-  "Reuse existing fuzzy matching from core library",
+  "Reuse @fuzzy-matching from core library",
   rationale: [
     `typspec_core::fuzzy::best_fuzzy_match` already implements the
     @damlev distance with the ~67% threshold. The same `suggest_name` helper used

@@ -82,7 +82,7 @@ Out of scope:
   rationale: [
     A spec file that doesn't exist means either a typo (use did-you-mean) or
     the spec hasn't been created yet (ask user to init it). Same heuristic
-    as the existing `typspec status` fuzzy matching.
+    as the existing `typspec status` @fuzzy-matching.
   ],
 )
 

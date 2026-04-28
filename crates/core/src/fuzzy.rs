@@ -4,7 +4,7 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 }
 
 /// Find the best fuzzy match for `input` among `candidates`.
-/// Uses Damerau-Levenshtein distance (@damlev) with ~67% similarity threshold.
+/// Uses Damerau-Levenshtein distance (@damlev) with @fuzzy-matching (~67% similarity threshold).
 /// Returns the closest candidate(s) above threshold, up to 3.
 pub fn best_fuzzy_match<'a>(input: &str, candidates: &'a [String]) -> Vec<&'a String> {
     if candidates.is_empty() { return vec![]; }

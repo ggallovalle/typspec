@@ -33,7 +33,7 @@ Out of scope:
 = Design
 
 #decision(
-  "Levenshtein distance with 67% similarity threshold",
+  "Levenshtein distance with 67% similarity threshold (@damlev / @fuzzy-matching)",
   rationale: [
     Matches clap's own suggestion algorithm. A threshold of roughly 67% means
     "at least 2/3 of characters match" — close enough to catch typos without
