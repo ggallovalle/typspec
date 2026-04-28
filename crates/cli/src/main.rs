@@ -421,6 +421,15 @@ fn cmd_archive(name: &str, _yes: bool, json: bool) {
     // Find spec-delta requirements
     let delta_ops = typspec_core::metadata_to_delta_ops(&entries);
 
+    // Check for git conflicts — warn if spec files have uncommitted changes
+    let spec_dir = PathBuf::from("typspec/specs");
+    for spec_name in &modifies {
+        let spec_file = spec_dir.join(format!("{}.typ", spec_name));
+        if spec_file.exists() {
+            check_git_conflict(&spec_file, json);
+        }
+    }
+
     // Map spec names to file paths
     let spec_dir = PathBuf::from("typspec/specs");
     let mut spec_deltas: std::collections::HashMap<String, Vec<typspec_core::surgery::DeltaOp>> = std::collections::HashMap::new();
@@ -502,6 +511,32 @@ fn cmd_validate(path: Option<&Path>) {
 
 fn cmd_install() {
     eprintln!("info: `typspec install` is not yet implemented");
+}
+
+/// Check if a spec file has been modified since the last commit.
+/// Warns the user if uncommitted changes exist.
+fn check_git_conflict(spec_file: &Path, json: bool) {
+    let output = std::process::Command::new("git")
+        .args(["diff", "--quiet", "HEAD", "--", &spec_file.to_string_lossy()])
+        .output();
+
+    match output {
+        Ok(out) => {
+            if !out.status.success() {
+                // Exit code 1 = diff exists (or file not tracked)
+                if json {
+                    eprintln!(r#"{{"warn": "spec has uncommitted changes: {}"}}"#, spec_file.display());
+                } else {
+                    eprintln!("⚠  Warning: {} has uncommitted changes", spec_file.display());
+                    eprintln!("   Archive may conflict with existing work.");
+                    eprintln!("   Commit or stash your changes first for a clean merge.");
+                }
+            }
+        }
+        Err(_) => {
+            // git not available or not a repository — skip check
+        }
+    }
 }
 
 fn today_date() -> String {
