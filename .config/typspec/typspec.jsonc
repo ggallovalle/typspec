@@ -1,0 +1,14 @@
+{
+  "$schema": "https://typspec.dev/schemas/v1.json",
+  "typspec": "0.1.0",
+
+  "project": {
+    "name": "typspec",
+    "version": "0.1.0"
+  },
+
+  "context": {
+    "tech_stack": "Rust, Typst",
+    "domain": "Specification management toolchain"
+  }
+}

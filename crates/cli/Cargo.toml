@@ -1,0 +1,10 @@
+[package]
+name = "typspec"
+version = "0.1.0"
+edition = "2024"
+description = "CLI for typspec — specification management powered by Typst"
+
+[dependencies]
+typspec-core = { path = "../core" }
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
