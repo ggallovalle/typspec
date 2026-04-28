@@ -13,7 +13,7 @@ in its output.
 
 A `typspec which <name>` command fills this gap: search specs, changes,
 and archive in order, return the first match. If no match, use the same
-"did you mean" fuzzy matching (Levenshtein, ~67% threshold) that `status`
+"did you mean" fuzzy matching (@damlev, ~67% threshold) that `status`
 and `archive` already use.
 
 == Scope
@@ -49,8 +49,8 @@ Out of scope:
 #decision(
   "Reuse existing fuzzy matching from core library",
   rationale: [
-    `typspec_core::fuzzy::best_fuzzy_match` already implements Levenshtein
-    distance with the ~67% threshold. The same `suggest_name` helper used
+    `typspec_core::fuzzy::best_fuzzy_match` already implements the
+    @damlev distance with the ~67% threshold. The same `suggest_name` helper used
     by `status` and `archive` can be reused directly.
   ],
 )
@@ -66,7 +66,7 @@ Out of scope:
   Search order SHALL be: specs → changes → archive. The first match is
   returned. If no exact match is found, the CLI SHALL apply the same
   "did you mean" fuzzy matching used by `status` and `archive`
-  (Levenshtein distance, ~67% threshold).
+  (@damlev, ~67% threshold).
 
   #scenario("which finds a spec",
     when: [`typspec which module-api`],
@@ -97,3 +97,4 @@ Out of scope:
   task([Use `suggest_name` for fuzzy fallback on no match], done: false, labels: ("cli",)),
   task([Use configured paths from typspec.jsonc, respect customizable paths], done: false, labels: ("cli",)),
 ))
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

@@ -219,7 +219,7 @@ The `status` and `archive` commands SHALL perform fuzzy matching when a
   spec or change name is not found.
 
   The CLI SHALL collect all available names from the appropriate directory,
-  compute Levenshtein edit distance against the user's input, and display
+  compute @damlev edit distance against the user's input, and display
   the closest match when the similarity exceeds approximately 67%.
 
   #scenario("suggests closest match on typo",
@@ -294,7 +294,7 @@ If a requirement specifies a spec in its `modifies` that is NOT listed in
 #requirement("validation-target-spec-exists", priority: "shall")[
 If the target spec file for a requirement does not exist on disk, the
   archive SHALL error and suggest existing spec names using the "did you
-  mean" Levenshtein heuristic.
+  mean" @damlev heuristic.
 
   #scenario("target spec file missing",
     given: [typspec/specs/config.typ does not exist],
@@ -329,7 +329,7 @@ If a requirement specifies a spec in its `modifies` that is NOT listed in
 #requirement("validation-target-spec-exists", priority: "shall")[
 If the target spec file for a requirement does not exist on disk, the
   archive SHALL error and suggest existing spec names using the "did you
-  mean" Levenshtein heuristic.
+  mean" @damlev heuristic.
 
   #scenario("target spec file missing",
     given: [typspec/specs/config.typ does not exist],
@@ -562,3 +562,5 @@ The CLI SHALL pass `--root` set to the config file's parent directory
     then: [internally calls `typst query --root <project-root> ...`],
   )
 ]
+
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

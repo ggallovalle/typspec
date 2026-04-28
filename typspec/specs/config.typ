@@ -231,3 +231,4 @@ Each supported tool SHALL have a known skills directory path:
     then: [no other code changes needed — template rendering is generic],
   )
 ]
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

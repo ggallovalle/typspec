@@ -8,3 +8,4 @@ description = "Core library for typspec — config parsing, metadata querying, A
 typst-syntax = "0.14"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+strsim = "0.11"

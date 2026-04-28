@@ -1,41 +1,11 @@
-/// Levenshtein edit distance between two strings.
+/// Damerau-Levenshtein distance between two strings (see @damlev).
 pub fn levenshtein(a: &str, b: &str) -> usize {
-    let a_len = a.len();
-    let b_len = b.len();
-
-    if a_len == 0 { return b_len; }
-    if b_len == 0 { return a_len; }
-
-    let a_bytes = a.as_bytes();
-    let b_bytes = b.as_bytes();
-
-    // Use two rows to save memory
-    let mut prev: Vec<usize> = (0..=b_len).collect();
-    let mut curr: Vec<usize> = vec![0; b_len + 1];
-
-    for i in 1..=a_len {
-        curr[0] = i;
-        for j in 1..=b_len {
-            let cost = if a_bytes[i - 1] == b_bytes[j - 1] { 0 } else { 1 };
-            curr[j] = min3(
-                prev[j] + 1,          // deletion
-                curr[j - 1] + 1,      // insertion
-                prev[j - 1] + cost,   // substitution
-            );
-        }
-        std::mem::swap(&mut prev, &mut curr);
-    }
-
-    prev[b_len]
-}
-
-fn min3(a: usize, b: usize, c: usize) -> usize {
-    a.min(b).min(c)
+    strsim::damerau_levenshtein(a, b)
 }
 
 /// Find the best fuzzy match for `input` among `candidates`.
-/// Returns the closest candidate and its similarity score (0.0–1.0).
-/// Only returns a match if similarity exceeds the threshold (~67%).
+/// Uses Damerau-Levenshtein distance (@damlev) with ~67% similarity threshold.
+/// Returns the closest candidate(s) above threshold, up to 3.
 pub fn best_fuzzy_match<'a>(input: &str, candidates: &'a [String]) -> Vec<&'a String> {
     if candidates.is_empty() { return vec![]; }
 
@@ -52,19 +22,16 @@ pub fn best_fuzzy_match<'a>(input: &str, candidates: &'a [String]) -> Vec<&'a St
         })
         .collect();
 
-    // Sort by similarity descending
     scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-    // Threshold: ~67% similarity (matching clap's heuristic)
     let threshold = 0.67;
 
-    // Filter to best matches above threshold
     let best_score = scored.first().map(|s| s.1).unwrap_or(0.0);
     if best_score < threshold { return vec![]; }
 
     scored.into_iter()
-        .filter(|(_, score)| *score >= best_score - 0.01) // within 1% of best
-        .take(3) // at most 3 suggestions
+        .filter(|(_, score)| *score >= best_score - 0.01)
+        .take(3)
         .map(|(name, _)| name)
         .collect()
 }
@@ -86,6 +53,12 @@ mod tests {
     #[test]
     fn test_levenshtein_one_insertion() {
         assert_eq!(levenshtein("cat", "cats"), 1);
+    }
+
+    #[test]
+    fn test_transposition() {
+        // Damerau-Levenshtein handles transpositions
+        assert_eq!(levenshtein("levenshtein", "levensthein"), 1);
     }
 
     #[test]

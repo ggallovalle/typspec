@@ -1,0 +1,11 @@
+damlev:
+    type: misc
+    title: Damerau-Levenshtein Distance
+    description: >
+      String metric for measuring edit distance between two sequences.
+      An extension of Levenshtein distance that also considers
+      transpositions of two adjacent characters as a single edit.
+      Similarity threshold of approximately 67% used for fuzzy matching.
+    url: https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
+    serial-number:
+      doi: "10.1145/363347.363387"

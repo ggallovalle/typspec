@@ -204,3 +204,4 @@ The `spec` and `change` document templates SHALL call `#bibliography()` for
     then: [template calls `#bibliography("typspec/bibliographies/domain-language.yaml")`, citation resolves],
   )
 ]
+#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
