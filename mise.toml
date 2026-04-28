@@ -1,0 +1,2 @@
+[tasks.typspec]
+run = "cargo run -p typspec -- $@"
