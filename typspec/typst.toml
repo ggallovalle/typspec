@@ -5,5 +5,5 @@ entrypoint = "src/lib.typ"
 authors = ["Gerson Gallo"]
 license = "MIT"
 description = "Structured specification document components for Typst"
-repository = "https://github.com/kbroom/typspec"
+repository = "https://github.com/ggallovalle/typspec"
 compiler = "0.14"
