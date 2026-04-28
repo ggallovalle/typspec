@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand};
 
+mod skills;
+
 /// typspec — structured specification management powered by Typst.
 #[derive(Parser, Debug)]
 #[command(name = "typspec", version, about)]
@@ -27,6 +29,9 @@ enum Commands {
     Init {
         /// Target directory (default: current directory)
         path: Option<PathBuf>,
+        /// AI tools to generate skills for (comma-separated: claude,codex,opencode; all, none)
+        #[arg(long)]
+        tools: Option<String>,
     },
     /// Create a new spec or change file
     New {
@@ -102,7 +107,7 @@ fn main() {
     }
 
     match &cli.command {
-        Commands::Init { path } => cmd_init(path.as_deref(), cli.json),
+        Commands::Init { path, tools } => cmd_init(path.as_deref(), cli.json, tools.as_deref()),
         Commands::New { kind } => cmd_new(kind, cli.json),
         Commands::List { specs } => cmd_list(*specs, cli.json),
         Commands::Status { name } => cmd_status(name, cli.json),
@@ -113,7 +118,7 @@ fn main() {
     }
 }
 
-fn cmd_init(path: Option<&Path>, json: bool) {
+fn cmd_init(path: Option<&Path>, json: bool, tools: Option<&str>) {
     let dir = path.unwrap_or_else(|| Path::new("."));
     let specs_dir = dir.join("typspec").join("specs");
     let changes_dir = dir.join("typspec").join("changes");
@@ -131,6 +136,11 @@ fn cmd_init(path: Option<&Path>, json: bool) {
   }
 }"#;
         std::fs::write(&config_path, config).expect("failed to write config");
+    }
+
+    // Generate AI agent skills if --tools flag provided
+    if let Some(tools_str) = tools {
+        generate_tool_skills(tools_str, dir, json);
     }
 
     if json {
@@ -621,6 +631,63 @@ fn load_paths() -> (PathBuf, PathBuf, PathBuf) {
     let cfg = typspec_core::config::load_config(Path::new(".")).unwrap_or_default();
     let r = typspec_core::resolve_paths(&cfg, Path::new("."));
     (r.specs_dir, r.changes_dir, r.archive_dir)
+}
+
+/// Generate AI agent skills based on --tools flag.
+fn generate_tool_skills(tools_str: &str, project_root: &Path, json: bool) {
+    let lower = tools_str.to_lowercase();
+
+    let selected_tools: Vec<skills::Tool> = if lower == "all" {
+        skills::Tool::all()
+    } else if lower == "none" {
+        vec![]
+    } else {
+        let ids: Vec<&str> = tools_str.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+        let mut tools = Vec::new();
+        let mut errors = Vec::new();
+        for id in &ids {
+            match skills::Tool::from_id(id) {
+                Some(t) => tools.push(t),
+                None => errors.push(*id),
+            }
+        }
+        if !errors.is_empty() {
+            let valid: Vec<String> = skills::Tool::all().iter().map(|t| format!("  {}", t.cli_id())).collect();
+            eprintln!("error: unknown tool(s): {}", errors.join(", "));
+            eprintln!("Valid tools:\n{}", valid.join("\n"));
+            std::process::exit(1);
+        }
+        tools
+    };
+
+    if selected_tools.is_empty() {
+        if json {
+            println!(r#"{{"skills_generated": 0}}"#);
+        } else {
+            println!("  Skills: none (--tools none)");
+        }
+        return;
+    }
+
+    for tool in &selected_tools {
+        let dir = project_root.to_path_buf();
+        match skills::generate_skills(*tool, &dir) {
+            Ok(files) => {
+                if json {
+                    let paths: Vec<String> = files.iter().map(|f| f.to_string_lossy().to_string()).collect();
+                    println!(r#"{{"tool": "{}", "skills": {}}}"#, tool.cli_id(), serde_json::to_string(&paths).unwrap());
+                } else {
+                    println!("  {}: {} skill(s) in {}/", tool.name(), files.len(), tool.skills_dir());
+                    for f in &files {
+                        println!("    {}", f.display());
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("error generating skills for {}: {}", tool.name(), e);
+            }
+        }
+    }
 }
 
 /// Move a file using `git mv` if it's tracked by git, else `std::fs::rename`.

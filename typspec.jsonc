@@ -1,0 +1,7 @@
+{
+  "$schema": "https://typspec.dev/schemas/v1.json",
+  "project": {
+    "name": "my-project",
+    "version": "0.1.0"
+  }
+}
