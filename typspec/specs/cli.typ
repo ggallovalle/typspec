@@ -464,41 +464,10 @@ The `typspec init` command SHALL accept a `--tools` flag that accepts
   )
 ]
 #requirement("skill-templates", priority: "shall")[
-Skill templates SHALL be Tera templates embedded in the CLI binary.
-
-  Each template SHALL generate a `SKILL.md` file in the tool's skills
-  directory (e.g., `.claude/skills/typspec-propose/SKILL.md`).
-
-  Templates SHALL reference the `typspec` CLI for all operations.
-
-  The following skills SHALL be generated for each selected tool:
-
-  - `typspec-propose` — guides the AI through creating a change document
-  - `typspec-explore` — explore mode for thinking through ideas
-  - `typspec-apply` — implement tasks from a change
-  - `typspec-archive` — archive a completed change
-
-  Each skill SHALL include YAML frontmatter with:
-  - `name`: the skill name
-  - `description`: what the skill does
-  - `compatibility`: requires typspec CLI
-
-  #scenario("skill file structure",
-    given: [tool `claude` is selected],
-    when: [init generates skills],
-    then: [
-      `.claude/skills/typspec-propose/SKILL.md` exists,
-      `.claude/skills/typspec-explore/SKILL.md` exists,
-      `.claude/skills/typspec-apply/SKILL.md` exists,
-      `.claude/skills/typspec-archive/SKILL.md` exists,
-    ],
-  )
-
-  #scenario("skill content references typspec CLI",
-    given: [a generated SKILL.md file],
-    when: [AI reads it],
-    then: [it references `typspec list`, `typspec new`, `typspec status`, etc.],
-  )
+The generated skill templates SHALL NOT hardcode directory paths.
+  Instead, they SHALL instruct the AI to use `typspec list --specs`
+  and `typspec list` to discover file locations, and `typspec status`
+  to find the exact file path.
 ]
 #requirement("attribution-comment", priority: "shall")[
 Each generated SKILL.md file SHALL contain an attribution comment at the
@@ -564,3 +533,61 @@ The CLI SHALL pass `--root` set to the config file's parent directory
 ]
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+#requirement("list-shows-paths", priority: "shall")[
+The `typspec list` and `typspec list --specs` commands SHALL show the
+  relative file path alongside each entry name.
+
+  In human-readable mode:
+  ```
+    module-api (typspec/specs/module-api.typ)
+  ```
+
+  In JSON mode, each entry SHALL include a `path` field:
+  ```json
+  [{"name": "module-api", "path": "typspec/specs/module-api.typ"}]
+  ```
+
+  #scenario("list specs shows paths",
+    when: [`typspec list --specs`],
+    then: [output shows `name (relative/path.typ)` for each spec],
+  )
+
+  #scenario("list changes shows paths",
+    when: [`typspec list`],
+    then: [output includes paths for each change file],
+  )
+
+  #scenario("list with JSON includes path field",
+    when: [`typspec list --json`],
+    then: [JSON array with `name` and `path` fields per entry],
+  )
+]
+#requirement("which-command", priority: "shall")[
+The CLI SHALL provide a `typspec which <name>` command that locates a
+  file by name across specs, changes, and archive directories.
+
+  Search order SHALL be: specs → changes → archive. The first match is
+  returned. If no exact match is found, the CLI SHALL apply the same
+  "did you mean" fuzzy matching used by `status` and `archive`
+  (@damlev, ~67% threshold).
+
+  #scenario("which finds a spec",
+    when: [`typspec which module-api`],
+    then: [outputs the full path like `typspec/specs/module-api.typ`],
+  )
+
+  #scenario("which finds an archived change",
+    when: [`typspec which customizable-paths`],
+    then: [outputs the path in archive directory],
+  )
+
+  #scenario("which with typo shows suggestion",
+    when: [`typspec which modle-api`],
+    then: [shows error + "tip: a similar name exists: 'module-api'"],
+  )
+
+  #scenario("which with no match and no close name errors",
+    when: [`typspec which completely-unrelated`],
+    then: [error without suggestion],
+  )
+]

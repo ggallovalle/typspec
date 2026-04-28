@@ -96,8 +96,8 @@ Out of scope:
 = Tasks
 
 #task_group("1. CLI", (
-  task([Update `cmd_list` to show file paths in human-readable output], done: false, labels: ("cli",)),
-  task([Update `cmd_list` JSON output to include `name` + `path` fields], done: false, labels: ("cli",)),
+  task([Update `cmd_list` to show file paths in human-readable output], done: true, labels: ("cli",)),
+  task([Update `cmd_list` JSON output to include `name` + `path` fields], done: true, labels: ("cli",)),
 ))
 
 #task_group("2. Skill Templates", (

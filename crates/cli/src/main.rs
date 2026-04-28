@@ -73,6 +73,11 @@ enum Commands {
     },
     /// Fetch workspace dependencies
     Install,
+    /// Locate a file by name across specs, changes, and archive
+    Which {
+        /// Name of the spec, change, or archived change
+        name: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -115,6 +120,7 @@ fn main() {
         Commands::Archive { name, yes } => cmd_archive(name, *yes, cli.json),
         Commands::Validate { path } => cmd_validate(path.as_deref()),
         Commands::Install => cmd_install(),
+        Commands::Which { name } => cmd_which(name, cli.json),
     }
 }
 
@@ -269,6 +275,7 @@ fn cmd_list(specs: bool, json: bool) {
         eprintln!("error: {}", e); std::process::exit(1);
     });
     let dir = if specs { paths.specs } else { paths.changes };
+    let cwd = std::env::current_dir().unwrap_or_default();
 
     let entries: Vec<_> = match std::fs::read_dir(&dir) {
         Ok(entries) => entries
@@ -279,15 +286,21 @@ fn cmd_list(specs: bool, json: bool) {
     };
 
     if json {
-        let names: Vec<String> = entries.iter()
-            .map(|f| f.path().file_stem().unwrap().to_string_lossy().to_string())
+        let items: Vec<serde_json::Value> = entries.iter()
+            .map(|f| {
+                let path = f.path();
+                let name = path.file_stem().unwrap().to_string_lossy().to_string();
+                let rel = path.strip_prefix(&cwd).unwrap_or(&path);
+                serde_json::json!({"name": name, "path": rel.to_string_lossy()})
+            })
             .collect();
-        println!("{}", serde_json::to_string(&names).unwrap());
+        println!("{}", serde_json::to_string(&items).unwrap());
     } else {
         for file in &entries {
             let path = file.path();
             let name = path.file_stem().unwrap().to_string_lossy();
-            println!("  {}", name);
+            let rel = path.strip_prefix(&cwd).unwrap_or(&path);
+            println!("  {} ({})", name, rel.to_string_lossy());
         }
         if entries.is_empty() {
             println!("  (no {} found)", if specs { "specs" } else { "changes" });
@@ -571,7 +584,7 @@ fn cmd_validate(path: Option<&Path>) {
 
 fn cmd_install() {
     // Load config and find git workspace dependencies
-    match typspec_core::config::load_config(std::path::Path::new(".")) {
+    match typspec_core::config::load_config(Path::new(".")) {
         Ok(cfg) => {
             let mut found = false;
             for (name, entry) in &cfg.workspaces {
@@ -622,6 +635,85 @@ fn cmd_install() {
             eprintln!("error: failed to load config: {}", e);
         }
     }
+}
+
+/// Locate a file by name across specs, changes, and archive directories.
+fn cmd_which(name: &str, json: bool) {
+    let paths = match resolve_project_paths() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // Search in order: specs → changes → archive
+    let dirs = [&paths.specs, &paths.changes, &paths.archive];
+    let file_name = format!("{}.typ", name);
+
+    for (i, dir) in dirs.iter().enumerate() {
+        if i == 2 {
+            // Archive files have date prefixes: YYYY-MM-DD-<name>.typ
+            // Match by suffix
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.extension().map(|e| e == "typ").unwrap_or(false) {
+                        if let Some(stem) = p.file_stem() {
+                            let stem = stem.to_string_lossy();
+                            if stem.ends_with(&format!("-{}", name)) || stem == name {
+                                let cwd = std::env::current_dir().unwrap_or_default();
+                                let rel = p.strip_prefix(&cwd).unwrap_or(&p);
+                                if json {
+                                    println!(r#"{{"name": "{}", "path": "{}"}}"#, name, rel.to_string_lossy());
+                                } else {
+                                    println!("{}", rel.to_string_lossy());
+                                }
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            let candidate = dir.join(&file_name);
+            if candidate.exists() {
+                let cwd = std::env::current_dir().unwrap_or_default();
+                let rel = candidate.strip_prefix(&cwd).unwrap_or(&candidate);
+                if json {
+                    println!(r#"{{"name": "{}", "path": "{}"}}"#, name, rel.to_string_lossy());
+                } else {
+                    println!("{}", rel.to_string_lossy());
+                }
+                return;
+            }
+        }
+    }
+
+    // Not found — suggest alternatives
+    let mut candidates: Vec<String> = Vec::new();
+    for dir in &dirs {
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                if entry.path().extension().map(|e| e == "typ").unwrap_or(false) {
+                    if let Some(stem) = entry.path().file_stem() {
+                        candidates.push(stem.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    eprintln!("error: '{}' not found", name);
+    let suggestions = typspec_core::fuzzy::best_fuzzy_match(name, &candidates);
+    if suggestions.len() == 1 {
+        eprintln!("  tip: a similar name exists: '{}'", suggestions[0]);
+    } else if suggestions.len() > 1 {
+        let joined = suggestions.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join("' or '");
+        eprintln!("  tip: a similar name exists: {}?", joined);
+    }
+
+    std::process::exit(1);
 }
 
 /// Suggest a "did you mean" name when a spec or change is not found.

@@ -91,9 +91,9 @@ Out of scope:
 = Tasks
 
 #task_group("1. CLI", (
-  task([Add `Which` subcommand to Commands enum with `name` argument], done: false, labels: ("cli",)),
-  task([Implement `cmd_which`: iterate specs → changes → archive dirs, return first match], done: false, labels: ("cli",)),
-  task([Use `suggest_name` for fuzzy fallback on no match], done: false, labels: ("cli",)),
-  task([Use configured paths from typspec.jsonc, respect customizable paths], done: false, labels: ("cli",)),
+  task([Add `Which` subcommand to Commands enum with `name` argument], done: true, labels: ("cli",)),
+  task([Implement `cmd_which`: iterate specs → changes → archive dirs, return first match], done: true, labels: ("cli",)),
+  task([Use `suggest_name` for fuzzy fallback on no match], done: true, labels: ("cli",)),
+  task([Use configured paths from typspec.jsonc, respect customizable paths], done: true, labels: ("cli",)),
 ))
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
