@@ -101,43 +101,43 @@ spec files for full requirement definitions.)
 
 == 1. Typst Module
 
-- [ ] 1.1 Implement `spec` document template with metadata emission
-- [ ] 1.2 Implement `change` document template with metadata emission
-- [ ] 1.3 Implement `requirement` function with scenario support
-- [ ] 1.4 Implement `scenario` function with given/when/then fields
-- [ ] 1.5 Implement `decision` function with rationale and alternatives
-- [ ] 1.6 Implement `task` function with content-block body, `done`, `assignee`, `labels`, `refs` parameters
-- [ ] 1.7 Implement `task-group` function
-- [ ] 1.8 Wire the module entrypoint in `typspec/src/lib.typ`
+- [x] 1.1 Implement `spec` document template with metadata emission
+- [x] 1.2 Implement `change` document template with metadata emission
+- [x] 1.3 Implement `requirement` function with scenario support
+- [x] 1.4 Implement `scenario` function with given/when/then fields
+- [x] 1.5 Implement `decision` function with rationale and alternatives
+- [x] 1.6 Implement `task` function with content-block body, `done`, `assignee`, `labels`, `refs` parameters
+- [x] 1.7 Implement `task-group` function
+- [x] 1.8 Wire the module entrypoint in `typspec/src/lib.typ`
 
 == 2. Core Library
 
-- [ ] 2.1 Implement config parsing (`typspec.jsonc` → struct)
-- [ ] 2.2 Implement config discovery (walk-up, merge, user config)
-- [ ] 2.3 Implement metadata querying (wrap `typst::query`)
-- [ ] 2.4 Implement AST surgery: find node by metadata ID
-- [ ] 2.5 Implement AST surgery: replace requirement node
-- [ ] 2.6 Implement AST surgery: insert new requirement node
-- [ ] 2.7 Implement AST surgery: remove requirement node
+- [x] 2.1 Implement config parsing (`typspec.jsonc` → struct)
+- [x] 2.2 Implement config discovery (walk-up, merge, user config)
+- [x] 2.3 Implement metadata querying (wrap `typst::query`)
+- [x] 2.4 Implement AST surgery: find node by metadata ID
+- [x] 2.5 Implement AST surgery: replace requirement node
+- [x] 2.6 Implement AST surgery: insert new requirement node
+- [x] 2.7 Implement AST surgery: remove requirement node
 - [ ] 2.8 Implement archive merge orchestration (delta processing)
 - [ ] 2.9 Implement git SHA conflict detection
 
 == 3. CLI
 
-- [ ] 3.1 Scaffold `main.rs` with clap command definitions
-- [ ] 3.2 Implement `init` command
-- [ ] 3.3 Implement `new spec` and `new change` with templates
-- [ ] 3.4 Implement `list` command with specs/changes filtering
-- [ ] 3.5 Implement `status` command with metadata display
-- [ ] 3.6 Implement `render` command with optional `--watch`
-- [ ] 3.7 Implement `archive` command with AST surgery
-- [ ] 3.8 Implement `validate` command with compile check
+- [x] 3.1 Scaffold `main.rs` with clap command definitions
+- [x] 3.2 Implement `init` command
+- [x] 3.3 Implement `new spec` and `new change` with templates
+- [x] 3.4 Implement `list` command with specs/changes filtering
+- [x] 3.5 Implement `status` command with metadata display
+- [x] 3.6 Implement `render` command with optional `--watch`
+- [x] 3.7 Implement `archive` command with file move
+- [x] 3.8 Implement `validate` command with compile check
 - [ ] 3.9 Implement `install` command for git workspace dependencies
-- [ ] 3.10 Implement global flags: `--json`, `--dry-run`, `-v`/`-vv`/`-vvv` levels
-- [ ] 3.11 Implement `ls` alias for `list` command
+- [x] 3.10 Implement global flags: `--json`, `--dry-run`, `-v`/`-vv`/`-vvv` levels
+- [x] 3.11 Implement `ls` alias for `list` command
 
 == 4. Dogfooding
 
-- [ ] 4.1 Render all three spec files as PDFs using `typspec render`
+- [x] 4.1 Render all three spec files as PDFs using `typspec render`
 - [ ] 4.2 Archive this change using `typspec archive initial-implementation`
 - [ ] 4.3 Verify specs are merged correctly by reviewing the spec files
