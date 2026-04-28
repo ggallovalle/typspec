@@ -39,15 +39,14 @@ for installation via tools like `skills.sh` and Claude Code plugins.
 == Skill Directory Structure
 
 #requirement("skill-directory-structure", priority: "shall")[
-  Published skills SHALL live under `skills/typspec/typspec-<workflow>/SKILL.md`.
+  Published skills SHALL live at `skills/typspec-<workflow>/SKILL.md`.
 
   ```
   skills/
-    typspec/
-      typspec-propose/SKILL.md
-      typspec-explore/SKILL.md
-      typspec-apply/SKILL.md
-      typspec-archive/SKILL.md
+    typspec-propose/SKILL.md
+    typspec-explore/SKILL.md
+    typspec-apply/SKILL.md
+    typspec-archive/SKILL.md
   ```
 
   This mirrors the convention used by `skills.sh` and the mattpocock/skills
@@ -55,7 +54,7 @@ for installation via tools like `skills.sh` and Claude Code plugins.
 
   #scenario("skills dir structure",
     when: [repository is published],
-    then: [`skills/typspec/typspec-propose/SKILL.md` exists with frontmatter],
+    then: [`skills/typspec-propose/SKILL.md` exists with frontmatter],
   )
 ]
 

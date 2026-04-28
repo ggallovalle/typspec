@@ -85,7 +85,7 @@ jobs:
         shell: bash
         run: |
           find artifacts -name "*.tar.gz" -exec mv {} . \;
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: "typspec-*.tar.gz"
           generate_release_notes: true
