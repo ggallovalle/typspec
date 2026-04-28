@@ -91,18 +91,18 @@ Out of scope:
 = Tasks
 
 #task_group("1. Core Library", (
-  task([Implement Levenshtein distance function], done: false, labels: ("core",)),
-  task([Implement fuzzy matcher: collect names, score, filter by threshold, pick best], done: false, labels: ("core",)),
+  task([Implement Levenshtein distance function], done: true, labels: ("core",)),
+  task([Implement fuzzy matcher: collect names, score, filter by threshold, pick best], done: true, labels: ("core",)),
 ))
 
 #task_group("2. CLI Commands", (
-  task([Add fuzzy matching to `status` command on "not found"], done: false, labels: ("cli",)),
-  task([Add fuzzy matching to `archive` command on "not found"], done: false, labels: ("cli",)),
-  task([Format suggestion output to match clap's style], done: false, labels: ("cli",)),
+  task([Add fuzzy matching to `status` command on "not found"], done: true, labels: ("cli",)),
+  task([Add fuzzy matching to `archive` command on "not found"], done: true, labels: ("cli",)),
+  task([Format suggestion output to match clap's style], done: true, labels: ("cli",)),
 ))
 
 #task_group("3. Tests", (
-  task([Test exact match returns no suggestion], done: false, labels: ("tests",)),
-  task([Test obvious typo returns correct suggestion], done: false, labels: ("tests",)),
-  task([Test completely unrelated name returns no suggestion], done: false, labels: ("tests",)),
+  task([Test exact match returns no suggestion], done: true, labels: ("tests",)),
+  task([Test obvious typo returns correct suggestion], done: true, labels: ("tests",)),
+  task([Test completely unrelated name returns no suggestion], done: true, labels: ("tests",)),
 ))
