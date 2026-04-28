@@ -9,12 +9,12 @@ This document specifies the commands and behavior of the `typspec` CLI.
 The CLI SHALL support the following global flags available on all commands:
 
 ```
---dry-run    Preview actions without executing. Implies --verbose at info level.
+--dry-run    Preview actions without executing. Implies -vv (info level).
 --json       Output machine-readable JSON instead of human-readable text.
--v           Error-level logging (default).
--vv          Warning-level logging.
--vvv         Info-level logging.
--vvvv        Debug-level logging.
+             Default: human-readable.
+-v           Warning-level logging (default is error).
+-vv          Info-level logging.
+-vvv         Debug-level logging.
 ```
 
 ==== Scenario: dry-run implies verbose
@@ -27,10 +27,10 @@ The CLI SHALL support the following global flags available on all commands:
 ==== Scenario: verbose flag levels
 
 - GIVEN a user runs `typspec status my-change`
-- WHEN `-v` is used, only errors are shown
-- WHEN `-vv` is used, warnings and above are shown
-- WHEN `-vvv` is used, info and above are shown
-- WHEN `-vvvv` is used, debug and above are shown
+- WHEN no `-v` flag is given, only errors are shown
+- WHEN `-v` is used, warnings and above are shown
+- WHEN `-vv` is used, info and above are shown
+- WHEN `-vvv` or more is used, debug and above are shown
 
 == typspec init
 
