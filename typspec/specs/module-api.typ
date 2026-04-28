@@ -178,10 +178,22 @@ The `task` function SHALL define a single actionable item. The `task-group` func
 ))
 ```
 
+```
+#task[
+  Implement `typspec new` command with `clap`
+](
+  done: false,
+  assignee: "ai",
+  labels: ("cli",),
+)
+```
+
 === Parameters
 
-- `description` (positional, content) — what needs to be done.
+- Body (positional, content) — what needs to be done. Free-form content allowing inline code, emphasis, and links.
 - `done` (named, bool, optional) — whether the task is complete. Default: `false`.
+- `assignee` (named, string, optional) — who should implement: `"ai"` or `"human"`. Default: `"ai"`.
+- `labels` (named, array of strings, optional) — free-form tags for filtering. Example: `("cli", "tests")`.
 
 ==== Scenario: incomplete task
 
