@@ -129,60 +129,58 @@ pub fn extract_requirement_body(source_text: &str, id: &str) -> Option<String> {
 }
 
 fn extract_body_from_node(node: &SyntaxNode, id: &str) -> Option<String> {
+    // Check if this is a FuncCall for requirement("id"...)
     if node.kind() == SyntaxKind::FuncCall {
-        let text = node.clone().into_text().to_string();
-        let pattern = format!("requirement(\"{}\"", id);
-        let pattern2 = format!("requirement('{}'", id);
-        if text.contains(&pattern) || text.contains(&pattern2) {
-            // Find the opening `(` of the function arguments by looking for
-            // `(id` which follows `requirement("
-            if let Some(args_start) = text.find('(') {
-                // Track paren depth to find the matching closing `)`
-                let mut depth = 1u32;
-                let mut args_end = 0usize;
-                for (i, c) in text[args_start + 1..].char_indices() {
-                    match c {
-                        '(' => depth += 1,
-                        ')' => {
-                            depth -= 1;
-                            if depth == 0 { args_end = args_start + 1 + i; break; }
-                        }
-                        _ => {}
-                    }
+        if let Some(funcall) = ast::FuncCall::from_untyped(node) {
+            // Check callee is "requirement"
+            let callee = funcall.callee();
+            if let Some(ident) = ast::Ident::from_untyped(callee.to_untyped()) {
+                if ident.as_str() != "requirement" {
+                    return recurse_children(node, id);
                 }
-                if depth > 0 { return None; }
+            } else {
+                return recurse_children(node, id);
+            }
 
-                // Now find the body content block `[...]` after the closing `)`
-                let after_args = &text[args_end + 1..].trim_start();
-                if let Some(body_start_char) = after_args.chars().next() {
-                    if body_start_char != '[' { return None; }
-                    let body_content = &after_args[1..];
-                    let mut depth = 1u32;
-                    let mut body_end = 0usize;
-                    for (i, c) in body_content.char_indices() {
-                        match c {
-                            '[' => depth += 1,
-                            ']' => {
-                                depth -= 1;
-                                if depth == 0 { body_end = i; break; }
-                            }
-                            _ => {}
-                        }
+            // Check first positional arg matches id by walking untyped children
+            let id_match = find_first_str_in_children(node)
+                .and_then(|s| {
+                    let text = s.into_text().to_string();
+                    Some(text.trim_matches('"').to_string())
+                })
+                .map(|s| s == id)
+                .unwrap_or(false);
+
+            if !id_match {
+                return recurse_children(node, id);
+            }
+
+            // Find the body content block: it's a ContentBlock child of the FuncCall
+            for child in node.children() {
+                if child.kind() == SyntaxKind::ContentBlock {
+                    let body_text = child.clone().into_text().to_string();
+                    if let Some(inner) = body_text.strip_prefix('[')
+                        .and_then(|s| s.strip_suffix(']')) {
+                        return Some(inner.trim().to_string());
                     }
-                    if depth == 0 {
-                        return Some(body_content[..body_end].trim().to_string());
+                    if body_text.len() >= 2 {
+                        return Some(body_text[1..body_text.len()-1].trim().to_string());
                     }
                 }
             }
         }
     }
 
+    recurse_children(node, id)
+}
+
+/// Recurse into children to find the function call.
+fn recurse_children<'a>(node: &'a SyntaxNode, id: &str) -> Option<String> {
     for child in node.children() {
         if let Some(result) = extract_body_from_node(child, id) {
             return Some(result);
         }
     }
-
     None
 }
 fn find_matching_op<'a>(node: &SyntaxNode, ops: &'a [DeltaOp]) -> Option<&'a DeltaOp> {
@@ -198,18 +196,40 @@ fn find_matching_op<'a>(node: &SyntaxNode, ops: &'a [DeltaOp]) -> Option<&'a Del
         return None;
     }
 
-    // Get the text representation to extract the requirement ID
-    let text = node.clone().into_text().to_string();
-
-    // Find the ID between the first `"` after `requirement(` and its matching `"`
-    // This is a text-level approach to extract the ID from the source
-    if let Some(start) = text.find('"') {
-        if let Some(end) = text[start + 1..].find('"') {
-            let id = &text[start + 1..start + 1 + end];
+    // Extract the requirement ID from the first positional argument via AST
+    // Walk the FuncCall's untyped children to find the first string argument
+    for child in node.children() {
+        if child.kind() == SyntaxKind::Str {
+            let text = child.clone().into_text().to_string();
+            // Strip quotes
+            let id = text.trim_matches('"');
             return ops.iter().find(|op| op.id == id);
+        }
+        // Also recurse into the args area to find nested Str nodes
+        if child.kind() == SyntaxKind::Args {
+            for arg_child in child.children() {
+                if let Some(str_node) = find_first_str_in_children(arg_child) {
+                    let text = str_node.into_text().to_string();
+                    let id = text.trim_matches('"');
+                    return ops.iter().find(|op| op.id == id);
+                }
+            }
         }
     }
 
+    None
+}
+
+/// Find the first Str leaf node in a subtree (recursive, depth-first).
+fn find_first_str_in_children(node: &SyntaxNode) -> Option<SyntaxNode> {
+    if node.kind() == SyntaxKind::Str {
+        return Some(node.clone());
+    }
+    for child in node.children() {
+        if let Some(found) = find_first_str_in_children(child) {
+            return Some(found);
+        }
+    }
     None
 }
 
@@ -225,6 +245,7 @@ mod tests {
         let ops = vec![DeltaOp {
             action: DeltaAction::Modified,
             id: "ctx-expect".into(),
+            modifies: None,
             content: Some("#requirement(\"ctx-expect\")[modified]".into()),
         }];
         let (result, changes) = apply_ops(&parsed, &ops);
@@ -239,6 +260,7 @@ mod tests {
         let ops = vec![DeltaOp {
             action: DeltaAction::Modified,
             id: "nonexistent".into(),
+            modifies: None,
             content: Some("[new]".into()),
         }];
         let (result, changes) = apply_ops(&parsed, &ops);
