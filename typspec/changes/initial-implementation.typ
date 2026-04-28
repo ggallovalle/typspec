@@ -52,8 +52,11 @@ all whitespace, comments, and hand-crafted formatting.
 == Decision: Config Discovery (Mise-Style)
 
 The CLI SHALL walk up from the current directory, checking multiple path
-conventions (`typspec.jsonc`, `.typspec.jsonc`, `typspec/config.jsonc`,
-`.config/typspec.jsonc`). Parent configs merge with child overrides.
+conventions (`typspec.jsonc`, `typspec/config.jsonc`, `.config/typspec.jsonc`,
+`.config/typspec/typspec.jsonc`) plus `.local.` overrides and
+`TYPSPEC_ENV`-specific variants. Both `.json` and `.jsonc` are accepted.
+Parent configs merge with child overrides. Global config at
+`~/.config/typspec/` and system config at `/etc/typspec/` serve as base.
 
 Rationale: No root pollution. Users can nest the config wherever fits their
 project structure. Multiple packages in a monorepo each have their own config
@@ -103,8 +106,9 @@ spec files for full requirement definitions.)
 - [ ] 1.3 Implement `requirement` function with scenario support
 - [ ] 1.4 Implement `scenario` function with given/when/then fields
 - [ ] 1.5 Implement `decision` function with rationale and alternatives
-- [ ] 1.6 Implement `task` and `task-group` functions
-- [ ] 1.7 Wire the module entrypoint in `typspec/src/lib.typ`
+- [ ] 1.6 Implement `task` function with content-block body, `done`, `assignee`, `labels`, `refs` parameters
+- [ ] 1.7 Implement `task-group` function
+- [ ] 1.8 Wire the module entrypoint in `typspec/src/lib.typ`
 
 == 2. Core Library
 
@@ -129,7 +133,8 @@ spec files for full requirement definitions.)
 - [ ] 3.7 Implement `archive` command with AST surgery
 - [ ] 3.8 Implement `validate` command with compile check
 - [ ] 3.9 Implement `install` command for git workspace dependencies
-- [ ] 3.10 Implement global flags: `--json`, `--dry-run`, `-v` levels
+- [ ] 3.10 Implement global flags: `--json`, `--dry-run`, `-v`/`-vv`/`-vvv` levels
+- [ ] 3.11 Implement `ls` alias for `list` command
 
 == 4. Dogfooding
 
