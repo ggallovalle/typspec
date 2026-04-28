@@ -108,24 +108,24 @@ Out of scope:
 = Tasks
 
 #task_group("1. Add schemars dependency", (
-  task([Add `schemars` to crates/core/Cargo.toml with derive feature], done: false, labels: ("core",)),
+  task([Add `schemars` to crates/core/Cargo.toml with derive feature], done: true, labels: ("core",)),
 ))
 
 #task_group("2. Derive JsonSchema on config types", (
-  task([Derive JsonSchema on TypspecConfig, ProjectConfig, WorkspaceEntry], done: false, labels: ("core",)),
-  task([Add doc comments to struct fields for LSP descriptions], done: false, labels: ("core",)),
+  task([Derive JsonSchema on TypspecConfig, ProjectConfig, WorkspaceEntry], done: true, labels: ("core",)),
+  task([Add doc comments to struct fields for LSP descriptions], done: true, labels: ("core",)),
 ))
 
 #task_group("3. Add typspec schema command", (
-  task([Add schema generation function in core that outputs JSON Schema], done: false, labels: ("core",)),
-  task([Add hidden typspec schema subcommand to CLI, call core function], done: false, labels: ("cli",)),
-  task([Update the dollar-schema URL written by typspec init to raw GitHub], done: false, labels: ("cli",)),
+  task([Add schema generation function in core that outputs JSON Schema], done: true, labels: ("core",)),
+  task([Add hidden typspec schema subcommand to CLI, call core function], done: true, labels: ("cli",)),
+  task([Update the dollar-schema URL written by typspec init to raw GitHub], done: true, labels: ("cli",)),
 ))
 
 #task_group("4. Generate and verify", (
-  task([Run typspec schema > assets/typspec.schema.json], done: false, labels: ("docs",)),
-  task([Verify generated schema validates our typspec/typspec.jsonc], done: false, labels: ("tests",)),
-  task([Run cargo build with no warnings], done: false, labels: ("tests",)),
+  task([Run typspec schema > assets/typspec.schema.json], done: true, labels: ("docs",)),
+  task([Verify generated schema validates our typspec/typspec.jsonc], done: true, labels: ("tests",)),
+  task([Run cargo build with no warnings], done: true, labels: ("tests",)),
 ))
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

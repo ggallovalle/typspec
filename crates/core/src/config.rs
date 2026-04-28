@@ -1,41 +1,61 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 /// A typspec workspace entry — how to find another package's specs.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum WorkspaceEntry {
+    /// Local filesystem path to another package's specs.
     Path { path: PathBuf },
+    /// Git repository reference (requires `tag` or `commit`).
     Git { git: String, tag: Option<String>, commit: Option<String>, subpath: Option<PathBuf> },
+    /// Registry package reference (future).
     Registry { registry: String, package: String, version: String },
 }
 
 /// The top-level typspec project config.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
 pub struct ProjectConfig {
+    /// Dotted identifier for this package (e.g., `"std/http"`).
     pub name: String,
+    /// Package version.
     #[serde(default)]
     pub version: Option<String>,
 }
 
 /// The full `typspec.jsonc` schema.
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, JsonSchema)]
 pub struct TypspecConfig {
+    /// Minimum typspec CLI version required.
     #[serde(default)]
     pub typspec: Option<String>,
 
+    /// Package identity — name and version.
     #[serde(default)]
     pub project: Option<ProjectConfig>,
 
+    /// External spec dependencies (path, git, or registry).
     #[serde(default)]
     pub workspaces: HashMap<String, WorkspaceEntry>,
 
+    /// Public API surface — maps module names to spec file paths.
     #[serde(default)]
     pub exports: HashMap<String, String>,
 
+    /// Structured project context for AI agents (freeform key/value).
     #[serde(default)]
     pub context: Option<HashMap<String, String>>,
+}
+
+/// Generate the JSON Schema for `TypspecConfig` from its Rust definition.
+pub fn generate_schema() -> serde_json::Value {
+    let mut value = serde_json::to_value(schemars::schema_for!(TypspecConfig)).unwrap();
+    if let Some(obj) = value.as_object_mut() {
+        obj.insert("$id".into(), serde_json::json!("https://raw.githubusercontent.com/ggallovalle/typspec/main/assets/typspec.schema.json"));
+    }
+    value
 }
 
 /// Config filenames — only the canonical path is supported.

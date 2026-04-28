@@ -1,5 +1,5 @@
 {
-  "$schema": "https://typspec.dev/schemas/v1.json",
+  "$schema": "https://raw.githubusercontent.com/ggallovalle/typspec/main/assets/typspec.schema.json",
   "typspec": "0.1.0",
 
   "project": {

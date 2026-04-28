@@ -89,6 +89,9 @@ enum Commands {
     /// Generate usage spec for shell completions (hidden)
     #[command(hide = true)]
     Usage,
+    /// Generate JSON Schema for typspec.jsonc (hidden)
+    #[command(hide = true)]
+    Schema,
     /// Generate shell completion scripts
     Completion {
         /// Shell to generate completions for
@@ -144,6 +147,7 @@ fn main() {
         Commands::Install => cmd_install(),
         Commands::Which { target } => cmd_which(target, cli.json),
         Commands::Usage => cmd_usage(),
+        Commands::Schema => cmd_schema(),
         Commands::Completion { shell } => cmd_completion(shell),
     }
 }
@@ -184,7 +188,7 @@ example-book:
 
     if !config_path.exists() {
         let config = r#"{
-  "$schema": "https://typspec.dev/schemas/v1.json",
+  "$schema": "https://raw.githubusercontent.com/ggallovalle/typspec/main/assets/typspec.schema.json",
   "project": {
     "name": "my-project",
     "version": "0.1.0"
@@ -792,6 +796,11 @@ fn cmd_usage() {
     println!(r#"complete "NAME" run="typspec list --specs --complete; typspec list --complete" descriptions=#true"#);
     println!(r#"complete "CHANGE_NAME" run="typspec list --complete""#);
     println!(r#"complete "TARGET" run="typspec list --all --complete""#);
+}
+
+fn cmd_schema() {
+    let value = typspec_core::config::generate_schema();
+    println!("{}", serde_json::to_string_pretty(&value).unwrap());
 }
 
 fn cmd_completion(shell: &ShellKind) {

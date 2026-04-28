@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "ProjectConfig": {
+      "description": "The top-level typspec project config.",
+      "properties": {
+        "name": {
+          "description": "Dotted identifier for this package (e.g., `\"std/http\"`).",
+          "type": "string"
+        },
+        "version": {
+          "default": null,
+          "description": "Package version.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "WorkspaceEntry": {
+      "description": "A typspec workspace entry — how to find another package's specs.",
+      "oneOf": [
+        {
+          "description": "Local filesystem path to another package's specs.",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "path",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "path"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Git repository reference (requires `tag` or `commit`).",
+          "properties": {
+            "commit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "git": {
+              "type": "string"
+            },
+            "subpath": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "const": "git",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "git"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Registry package reference (future).",
+          "properties": {
+            "package": {
+              "type": "string"
+            },
+            "registry": {
+              "type": "string"
+            },
+            "type": {
+              "const": "registry",
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "registry",
+            "package",
+            "version"
+          ],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/ggallovalle/typspec/main/assets/typspec.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The full `typspec.jsonc` schema.",
+  "properties": {
+    "context": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": null,
+      "description": "Structured project context for AI agents (freeform key/value).",
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "exports": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "description": "Public API surface — maps module names to spec file paths.",
+      "type": "object"
+    },
+    "project": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProjectConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Package identity — name and version."
+    },
+    "typspec": {
+      "default": null,
+      "description": "Minimum typspec CLI version required.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "workspaces": {
+      "additionalProperties": {
+        "$ref": "#/$defs/WorkspaceEntry"
+      },
+      "description": "External spec dependencies (path, git, or registry).",
+      "type": "object"
+    }
+  },
+  "title": "TypspecConfig",
+  "type": "object"
+}
