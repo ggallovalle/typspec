@@ -202,14 +202,3 @@ The `task` function SHALL define a single actionable item. The `task-group` func
 - THEN the task renders as checked
 - AND metadata has `done: true`
 
-== Context Extensions
-
-The `ctx.ext` table in Lua test suites SHALL be the injection point for Go-side extensions.
-
-== Extension Resolution Order
-
-Extensions SHALL be resolved in registration order. When multiple extensions share the same name, the last one registered SHALL take precedence.
-
-== Error on Unknown Dependency
-
-When a test case declares a dependency that is not registered, the runner SHALL produce an error with the exact file:line location and a list of available extensions.
