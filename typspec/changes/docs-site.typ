@@ -76,11 +76,11 @@ Out of scope:
 = Tasks
 
 #task_group("1. Write documentation pages", (
-  task([Write docs/installation.md: prerequisites, cargo/binstall/mise/source, troubleshooting], done: false, labels: ("docs",)),
-  task([Write docs/getting-started.md: walkthrough with concrete example matching OpenSpec depth], done: false, labels: ("docs",)),
-  task([Write docs/concepts.md: specs, changes, deltas, archive, artifacts, diagrams matching OpenSpec depth], done: false, labels: ("docs",)),
-  task([Write docs/commands.md: all CLI subcommands with args, flags, examples matching OpenSpec depth], done: false, labels: ("docs",)),
-  task([Write docs/workflows.md: common patterns, when to use each command], done: false, labels: ("docs",)),
+  task([Write docs/installation.md: prerequisites, cargo/binstall/mise/source, troubleshooting], done: true, labels: ("docs",)),
+  task([Write docs/getting-started.md: walkthrough with concrete example matching OpenSpec depth], done: true, labels: ("docs",)),
+  task([Write docs/concepts.md: specs, changes, deltas, archive, artifacts, diagrams matching OpenSpec depth], done: true, labels: ("docs",)),
+  task([Write docs/commands.md: all CLI subcommands with args, flags, examples matching OpenSpec depth], done: true, labels: ("docs",)),
+  task([Write docs/workflows.md: common patterns, when to use each command], done: true, labels: ("docs",)),
 ))
 
 #bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
