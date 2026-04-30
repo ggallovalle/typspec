@@ -128,4 +128,3 @@ Out of scope:
   task([Run cargo build with no warnings], done: true, labels: ("tests",)),
 ))
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

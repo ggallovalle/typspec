@@ -83,4 +83,3 @@ Out of scope:
   task([Write docs/workflows.md: common patterns, when to use each command], done: true, labels: ("docs",)),
 ))
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

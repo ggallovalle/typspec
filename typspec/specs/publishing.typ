@@ -1,5 +1,8 @@
 #import "../src/lib.typ": spec, requirement, scenario, decision
+#import "../links.typ"
+#import "../glossary.typ"
 
+#show: glossary.glossary
 #show: spec.with(title: "Typspec Publishing")
 
 = Typspec Publishing Specification
@@ -100,4 +103,3 @@ for installation via tools like `skills.sh` and Claude Code plugins.
   )
 ]
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

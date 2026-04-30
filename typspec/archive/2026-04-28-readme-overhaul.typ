@@ -79,4 +79,3 @@ Out of scope:
   task([Update repo structure diagram to match new layout], done: true, labels: ("docs",)),
 ))
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

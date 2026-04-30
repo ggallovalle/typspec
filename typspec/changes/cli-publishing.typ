@@ -187,4 +187,3 @@ Out of scope:
   task([Add CARGO_REGISTRY_TOKEN secret setup instructions], done: true, labels: ("docs",)),
 ))
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")

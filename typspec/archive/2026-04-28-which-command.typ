@@ -1,4 +1,7 @@
 #import "../src/lib.typ": change, decision, requirement, scenario, task, task_group
+#import "../glossary.typ"
+
+#show: glossary.glossary
 
 #show: change.with(id: "which-command", modifies: ("cli",))
 
@@ -96,4 +99,4 @@ Out of scope:
   task([Use `suggest_name` for fuzzy fallback on no match], done: true, labels: ("cli",)),
   task([Use configured paths from typspec.jsonc, respect customizable paths], done: true, labels: ("cli",)),
 ))
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+

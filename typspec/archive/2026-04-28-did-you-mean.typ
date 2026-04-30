@@ -1,4 +1,7 @@
 #import "../src/lib.typ": change, decision, requirement, scenario, task, task_group
+#import "../glossary.typ"
+
+#show: glossary.glossary
 
 #show: change.with(id: "did-you-mean", modifies: ("cli",))
 
@@ -106,4 +109,4 @@ Out of scope:
   task([Test obvious typo returns correct suggestion], done: true, labels: ("tests",)),
   task([Test completely unrelated name returns no suggestion], done: true, labels: ("tests",)),
 ))
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+

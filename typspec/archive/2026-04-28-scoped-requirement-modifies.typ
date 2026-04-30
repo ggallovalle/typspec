@@ -1,4 +1,7 @@
 #import "../src/lib.typ": change, decision, requirement, scenario, task, task_group
+#import "../glossary.typ"
+
+#show: glossary.glossary
 
 #show: change.with(id: "scoped-requirement-modifies", modifies: ("module-api", "cli"))
 
@@ -200,4 +203,4 @@ Out of scope:
 #task_group("6. Module API Spec Update", (
   task([Document modifies parameter on requirement], done: false, labels: ("docs",)),
 ))
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+

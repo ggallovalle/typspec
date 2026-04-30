@@ -1,4 +1,7 @@
 #import "../src/lib.typ": change, decision, requirement, scenario, task, task_group
+#import "../glossary.typ"
+
+#show: glossary.glossary
 
 #show: change.with(id: "domain-language-bibliography", modifies: ("module-api", "core", "cli"))
 
@@ -106,4 +109,4 @@ Out of scope:
   task([Update skill templates to reference \@damlev], done: false, labels: ("docs",)),
   task([Update all archived changes that mention Levenshtein to use \@damlev], done: false, labels: ("docs",)),
 ))
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+

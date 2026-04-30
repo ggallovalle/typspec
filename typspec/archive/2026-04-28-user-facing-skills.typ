@@ -1,4 +1,7 @@
 #import "../src/lib.typ": change, decision, requirement, scenario, task, task_group
+#import "../glossary.typ"
+
+#show: glossary.glossary
 
 #show: change.with(id: "user-facing-skills", modifies: ("ai-skills", "cli", "config"))
 
@@ -215,4 +218,4 @@ Out of scope:
   task([Run cargo build with no warnings], done: true, labels: ("tests",)),
 ))
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
+

@@ -202,4 +202,3 @@ Out of scope:
   task([Manual: source generated script and verify tab-completion works], done: true, labels: ("tests",)),
 ))
 
-#bibliography("../bibliographies/domain-language.yaml", style: "iso-690-numeric")
